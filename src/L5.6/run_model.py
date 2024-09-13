@@ -19,7 +19,8 @@ from conex import *
 from tools.rat_simulation import generate_walk, speed_vector_converter
 from tools.visualization import iter_spike_multi_real
 
-from neuron.GPCell import SampleAncher, GPCell
+from neuron.GPCell import GPCell
+from stimuli.current_base import RandomInputCurrent
 from synapse.Weights import WeightInitializerAncher
 
 
@@ -30,7 +31,11 @@ pos_x, pos_y = generate_walk(length=100, R=10)
 ##################   CUSTOMIZATION   ##################
 #######################################################
 """
-N = 24
+layer_5_6_size = 24
+higher_layer_size = 16
+
+
+screen_shot_path = "/home/amilion/Pictures/Screenshots/GPCell"
 
 
 """ 
@@ -41,9 +46,9 @@ N = 24
 
 net = Network(behavior=prioritize_behaviors([TimeResolution(dt=1)]))
 
-ng = NeuronGroup(
+layer_5_6 = NeuronGroup(
     net=net,
-    size=NeuronDimension(width=N, height=N),
+    size=NeuronDimension(width=layer_5_6_size, height=layer_5_6_size),
     behavior=prioritize_behaviors(
         [
             SimpleDendriteStructure(),
@@ -71,25 +76,29 @@ ng = NeuronGroup(
     ),
 )
 
-inp = NeuronGroup(
+higher_layer = NeuronGroup(
     net=net,
-    size=1,
+    size=NeuronDimension(depth=1, height=higher_layer_size, width=higher_layer_size),
     behavior=prioritize_behaviors(
-        [SimpleDendriteStructure(), SimpleDendriteComputation(), NeuronAxon()]
+        [
+            SimpleDendriteStructure(),
+            SimpleDendriteComputation(),
+            NeuronAxon(),
+        ]
     )
     | (
         {
-            260: SampleAncher(),
-            # 600 : Recorder(["I", "v"]),
-            # 603 : EventRecorder(['spikes'])
+            250: RandomInputCurrent(prob_to_spike=0.1, T=50),
+            # 600: Recorder(["I", "v"]),
+            603: EventRecorder(["spikes"]),
         }
     ),
 )
 
 sg = SynapseGroup(
     net=net,
-    src=inp,
-    dst=ng,
+    src=higher_layer,
+    dst=layer_5_6,
     tag="Proximal,exi",
     behavior=prioritize_behaviors(
         [
@@ -118,7 +127,7 @@ prop_cycle = plt.rcParams["axes.prop_cycle"]
 colors = list(prop_cycle.by_key()["color"])
 
 
-ngs = [ng]
+ngs = [higher_layer]
 for i in range(0, 100):
     cnt = 0
     for ng in ngs:
@@ -130,7 +139,7 @@ for i in range(0, 100):
             step=1,
             color=colors[cnt],
             save=True,
-            lib="/home/amilion/Pictures/Screenshots/GPCell",
+            lib=screen_shot_path,
             label="GPCell" + str(cnt + 1),
             offset_x=0,
             offset_y=0,

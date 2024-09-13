@@ -79,23 +79,3 @@ class GPCell(LIF):
         neurons.v[neurons.spikes] = neurons.v_reset
 
         neurons.spike_prev = neurons.spikes
-
-
-class SampleAncher(pynt.Behavior):
-    """
-    Sample Input Neuron to activate the anchering of GPCells in first iteration.
-
-    Args :
-        ----
-    """
-
-    def initialize(self, neurons):
-        neurons.I = neurons.vector("zeros")
-        neurons.spikes = neurons.vector("zeros")
-        neurons.v = neurons.vector(-80)
-
-    def forward(self, neurons):
-        if neurons.network.iteration == 1:
-            neurons.spikes = neurons.vector(1)
-        else:
-            neurons.spikes = neurons.vector(0)
