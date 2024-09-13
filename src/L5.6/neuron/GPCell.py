@@ -68,8 +68,6 @@ class GPCell(LIF):
         if newPosX.numel() and newPosY.numel():
             neurons.I.view(self.shape[2], self.shape[1])[newPosY, newPosX] += self.I_amp
 
-        print(neurons.I)
-
         neurons.v += (
             (self._Fu(neurons) + self._RIu(neurons)) * neurons.network.dt / neurons.tau
         )
