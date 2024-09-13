@@ -52,7 +52,7 @@ layer_5_6 = NeuronGroup(
     behavior=prioritize_behaviors(
         [
             SimpleDendriteStructure(),
-            SimpleDendriteComputation(),
+            SimpleDendriteComputation(I_tau=2, apical_provocativeness=1),
             Fire(),
             KWTA(k=25),
             NeuronAxon(),
@@ -66,7 +66,6 @@ layer_5_6 = NeuronGroup(
                 threshold=-60,
                 v_rest=-65,
                 v_reset=-67,
-                init_v=-65,
                 L=50,
                 V=speed_vector_converter(pos_x, pos_y),
             ),
@@ -88,7 +87,7 @@ higher_layer = NeuronGroup(
     )
     | (
         {
-            250: RandomInputCurrent(prob_to_spike=0.1, T=50),
+            250: RandomInputCurrent(prob_to_spike=0.1),
             # 600: Recorder(["I", "v"]),
             603: EventRecorder(["spikes"]),
         }
@@ -99,18 +98,15 @@ sg = SynapseGroup(
     net=net,
     src=higher_layer,
     dst=layer_5_6,
-    tag="Proximal,exi",
+    tag="Apical,exi",
     behavior=prioritize_behaviors(
-        [
-            SynapseInit(),
-            SimpleDendriticInput(),
-        ]
-    )
-    | (
-        {
-            280: WeightInitializerAncher(),
-        }
+        [SynapseInit(), SimpleDendriticInput(), WeightInitializer(mode="random")]
     ),
+    # | (
+    #     {
+    #         280: WeightInitializerAncher(),
+    #     }
+    # ),
 )
 
 
@@ -127,7 +123,7 @@ prop_cycle = plt.rcParams["axes.prop_cycle"]
 colors = list(prop_cycle.by_key()["color"])
 
 
-ngs = [higher_layer]
+ngs = [layer_5_6]
 for i in range(0, 100):
     cnt = 0
     for ng in ngs:
