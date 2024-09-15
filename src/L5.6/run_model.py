@@ -30,7 +30,11 @@ pos_x, pos_y = generate_walk(length=100, R=10)
 ##################   CUSTOMIZATION   ##################
 #######################################################
 """
-N = 24
+layer_5_6_size = 24
+higher_layer_size = 16
+
+
+screen_shot_path = r"../../res/apical_syn"
 
 
 """ 
