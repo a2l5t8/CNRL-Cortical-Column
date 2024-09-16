@@ -6,7 +6,12 @@ import matplotlib.pyplot as plt
 
 from FC import FC
 
-fclayer = FC(K = 5, N = 50)
+
+net = Network(behavior = prioritize_behaviors([
+    TimeResolution(dt = 1)
+]))
+
+fclayer = FC(K = 5, N = 50, net = net)
 fclayer.initialize()
 fclayer.simulate_iterations(100)
 

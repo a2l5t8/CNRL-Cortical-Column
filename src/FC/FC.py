@@ -7,15 +7,15 @@ class FC() :
     Fully Connected Layer works as the decision making layer (Classifier) using EI populations and competition.
     """
 
-    def __init__(self, K, N) : 
+    def __init__(self, K, N, net = None, input_layer = None) : 
         """
         Creates the Network of Neural Poplations and their Synapses to be ready for the ouside input current.
 
         Args : 
-            (int) K: number of classes/excitatory NeuronGroups to be created.
-            (int) N: size of each neuron group (due to 80-20 exi-inh distribution, 
-                                                size of each exi population would be 0.8 * N)
-            (Layer) INP : Neural Layer to be connected to the FC layer.
+            K (int): number of classes/excitatory NeuronGroups to be created.
+            N (int): size of each neuron group (due to 80-20 exi-inh distribution, size of each exi population would be 0.8 * N)
+            net (Network): An initial network to build the fully connected layer on it, if not determined, a new network will be created.
+            input_layer (Container): Neural Layer to be connected to the FC layer. default is None, it can either be Layer, CortiacalColumn and etc...
         """
 
         self.N = N
@@ -24,15 +24,28 @@ class FC() :
         self.K = K
 
 
+        self.net = net
+        if(net == None) : 
+            self.net = Network(behavior = prioritize_behaviors([
+                TimeResolution(dt = 1)
+            ]))
 
-
-        self.net = Network(behavior = prioritize_behaviors([
-            TimeResolution(dt = 1)
-        ]))
-
+        self.input_layer = input_layer
 
         """
-        Creation of each EXI neuron group.
+        Network creation 
+        """
+
+        self.create_neuron_groups(N, K)
+        self.create_synapses(K)
+        self.create_layer()
+        self.create_input_connection(input_layer)
+
+
+    def create_neuron_groups(self, N, K) : 
+
+        """
+        Creation of each EXI neuron group. & Creation of the single, shared INH neuron group.
         """
 
         self.E_NG_list = []
@@ -61,9 +74,6 @@ class FC() :
 
             self.E_NG_list.append(E_NG)
 
-        """
-        Creation of the single, shared INH neuron group.
-        """
 
         self.I_NG = NeuronGroup(net = self.net,
             size = self.I * self.K,
@@ -87,8 +97,14 @@ class FC() :
             })
         )
 
+    def create_synapses(self, K) : 
+
         """
         Creation of Synapses between each EXI to themselves and bidirectional connectivity to INH population.
+        each excitatory neuron group has 3 main connections : 
+            1. EE : exc to itself
+            2. EI : exc to inh
+            3. IE : inh to exc
         """
 
         for i in range(self.K) : 
@@ -128,6 +144,39 @@ class FC() :
                     SimpleDendriticInput(),
                 ])
             )
+        
+    def create_layer(self) : 
+        """
+        Creating a Layer container for the whole decision-making network and their synapses between themselves.
+        """
+
+        pass
+
+    def create_input_connection(self, input_layer) : 
+        """
+        Creating the synaptic connection between the input layer and the decision-making layer.
+        """
+
+        self.input_fc_connection = CorticalLayerConnection(
+            net = self.net, 
+            src = input_layer,
+            dst = self.layer,
+            connections = [
+                (
+                    "output",
+                    "input",
+                    prioritize_behaviors(
+                        [
+                            SynapseInit(),
+                            WeightInitializer(),
+                            SimpleDendriticInput(),
+                            SimpleSTDP(a_plus = 0.1 , a_minus = 0.002)
+                        ]
+                    ),
+                    "Proximal",
+                ),
+            ],
+        )
     
     def initialize(self, has_init = True) :
         self.net.initialize(has_init)
