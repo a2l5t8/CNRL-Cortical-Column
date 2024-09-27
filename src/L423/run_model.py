@@ -101,7 +101,7 @@ transformation = transforms.Compose([
 ])
 dataset = torchvision.datasets.ImageFolder(root="./first_step",transform=transformation)
 dl = DataLoader(dataset,shuffle=True)
-show_image(torch.sum(dataset[2][0],0))
+show_image(torch.sum(dataset[0][0],0))
 
 
 #######################################################
@@ -318,7 +318,7 @@ sg23i23i = SynapseGroup(net = net, src = ng23i, dst = ng23i, tag = "Proximal", b
 
 
 #######################################################
-###################### Run Model ######################
+#################### Visualization ####################
 #######################################################
 
 
