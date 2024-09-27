@@ -229,7 +229,7 @@ sg4i4e = SynapseGroup(net = net, src = ng4i, dst = ng4e, tag = "Proximal", behav
 sg4e4e = SynapseGroup(net = net, src = ng4e, dst = ng4e, tag = "Proximal", behavior=prioritize_behaviors([
     SynapseInit(),
     WeightInitializer(weights=torch.Tensor([1, 1, 1, 1, 0, 1, 1, 1, 1]).view(1, 1, 9, 1, 1)),
-    LateralDendriticInput(current_coef=1000, inhibitory = True),
+    LateralDendriticInput(current_coef=1300, inhibitory = True),
 ])| {
     600 : Recorder(["I"])
 })
@@ -287,7 +287,7 @@ ng23i = NeuronGroup(size = L23_HEIGHT * L23_WIDTH * OUT_CHANNEL // 4, net = net,
 sg4e23e = SynapseGroup(net = net, src = ng4e, dst = ng23e, tag = "Proximal", behavior = prioritize_behaviors([
     SynapseInit(),
     # WeightInitializer(mode = "normal(4, 5)", density = 0.02, true_sparsity = False),
-    AveragePool2D(current_coef = 100),
+    AveragePool2D(current_coef = 150),
 ]) | ({
     800 : Recorder(["I"]),
 }))
