@@ -99,7 +99,7 @@ transformation = transforms.Compose([
     SqueezeTransform(dim = 0),
     SimplePoisson(time_window = time_window , ratio = 2),
 ])
-dataset = torchvision.datasets.ImageFolder(root="./first_step",transform=transformation)
+dataset = torchvision.datasets.ImageFolder(root="./src/L423/first_step",transform=transformation)
 dl = DataLoader(dataset,shuffle=True)
 show_image(torch.sum(dataset[0][0],0))
 
