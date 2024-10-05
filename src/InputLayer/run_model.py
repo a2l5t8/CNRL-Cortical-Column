@@ -57,7 +57,7 @@ layer_5_6 = NeuronGroup(
                 threshold=-30,
                 v_rest=-65,
                 v_reset=-67,
-                L=5,
+                L=15,
                 I_amp = 20,
                 # V=speed_vector_converter(pos_x, pos_y),
                 init_v=torch.tensor([-67]).expand(layer_5_6_size * layer_5_6_size).clone().to(dtype=torch.float32)
@@ -153,7 +153,7 @@ GP_lateral = SynapseGroup(
     )
     | (
         {
-            180: GPCellLateralInhibition(kernel_side=29, max_inhibition=2, r=17, n=1.1, inhibitory=1),
+            180: GPCellLateralInhibition(kernel_side=29, max_inhibition=2, r=13, n=2, inhibitory=1, near_by_excitatory=3),
         }
     ),
 )

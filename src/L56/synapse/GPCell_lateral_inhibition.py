@@ -36,28 +36,32 @@ class GPCellLateralInhibition(LateralDendriticInput):
             r: float,
             n: float,
             max_inhibition: float,
+            near_by_excitatory: float,
             current_coef = 1,
             inhibitory = None,
             *args, 
             **kwargs
         ):
-        super().__init__(kernel_side=kernel_side, r=r, n=n, max_inhibition=max_inhibition, current_coef=current_coef, inhibitory=inhibitory,*args, **kwargs)
+        super().__init__(kernel_side=kernel_side, r=r, n=n, max_inhibition=max_inhibition, near_by_excitatory=near_by_excitatory, current_coef=current_coef, inhibitory=inhibitory,*args, **kwargs)
 
     def initialize(self, synapse):
         self.kernel_side = self.parameter("kernel_side", required=True)
         self.r = self.parameter("r", required=True)
         self.n = self.parameter("n", required=True)
         self.max_inhibition = self.parameter("max_inhibition", required=True)   
+        self.near_by_excitatory = self.parameter("near_by_excitatory", required=True)
         self.center_point = (self.kernel_side // 2, self.kernel_side // 2)
-        self.lateral_kernel = torch.tensor([self.max_inhibition]).expand(self.kernel_side, self.kernel_side).to(dtype=torch.float)
+        self.lateral_kernel = torch.tensor([self.max_inhibition]).expand(self.kernel_side, self.kernel_side).to(dtype=torch.float).clone()
         for _x in range(self.kernel_side):
             for _y in range(self.kernel_side):
-                self.lateral_kernel[_x, _y] = self.lateral_function(_x, _y)
-                if self.lateral_kernel[_x, _y] > self.max_inhibition:
-                    self.lateral_kernel[_x, _y] = self.max_inhibition
+                self.lateral_kernel[_x][_y] = self.lateral_function(_x, _y)
+                # if self.lateral_kernel[_x, _y] > self.max_inhibition:
+                #     self.lateral_kernel[_x, _y] = self.max_inhibition
         max = self.lateral_kernel.max()
         if max:
-            self.lateral_kernel *= self.max_inhibition / self.lateral_kernel.max()
+            self.lateral_kernel = self.lateral_kernel * self.max_inhibition / self.lateral_kernel.max()
+        self.lateral_kernel[self.lateral_kernel <= 0] = -self.near_by_excitatory
+        print(self.lateral_kernel)
         synapse.weights = self.lateral_kernel.reshape(1, 1, 1, self.kernel_side, self.kernel_side)
         super().initialize(synapse)
         
