@@ -22,12 +22,12 @@ from src.L56.tools.visualization import iter_spike_multi_real
 
 #### -- PARAMETERS -- ####
 image_size = 28
-image_numbers = 50
+image_numbers = 5
 saccades_on_each_image = 5
-iterations = 100
+iterations = 1000
 layer_5_6_size = 24
 higher_layer_size = 16
-pos_x, pos_y = generate_walk(length=100, R=10)
+# pos_x, pos_y = generate_walk(length=100, R=10)
 screen_shot_path = "C:\\Users\\amilion\\Desktop\\develop\\python\\NS\\records\\L5.6"
 
 
@@ -44,7 +44,7 @@ layer_5_6 = NeuronGroup(
             SimpleDendriteStructure(),
             SimpleDendriteComputation(apical_provocativeness=0.9),
             Fire(),
-            # KWTA(k=10),
+            KWTA(k=10),
             NeuronAxon(),
         ]
     )
@@ -57,9 +57,9 @@ layer_5_6 = NeuronGroup(
                 threshold=-30,
                 v_rest=-65,
                 v_reset=-67,
-                L=10,
+                L=5,
                 I_amp = 20,
-                V=speed_vector_converter(pos_x, pos_y),
+                # V=speed_vector_converter(pos_x, pos_y),
                 init_v=torch.tensor([-67]).expand(layer_5_6_size * layer_5_6_size).clone().to(dtype=torch.float32)
             ),
             600: Recorder(["I", "v"]),
@@ -90,7 +90,8 @@ loader_neuron_group = NeuronGroup(
                 batch_number=saccades_on_each_image,
                 iterations=iterations
             ),
-            320: EventRecorder(["spikes"])
+            600: Recorder(["focus_loc"]),
+            601: EventRecorder(["spikes"]),
         }
 )
 
@@ -152,7 +153,7 @@ GP_lateral = SynapseGroup(
     )
     | (
         {
-            180: GPCellLateralInhibition(kernel_side=31, max_inhibition=3, r=16, n=5, inhibitory=1),
+            180: GPCellLateralInhibition(kernel_side=29, max_inhibition=2, r=17, n=1.1, inhibitory=1),
         }
     ),
 )
@@ -182,8 +183,7 @@ for i in range(0, 100):
     cnt = 0
     for ng in ngs:
         iter_spike_multi_real(
-            pos_x,
-            pos_y,
+            loader_neuron_group["focus_loc"][0],
             ng,
             itr=i,
             step=1,

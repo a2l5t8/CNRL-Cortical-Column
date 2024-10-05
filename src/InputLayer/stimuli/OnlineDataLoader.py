@@ -9,9 +9,9 @@ from conex import *
 
 def hypo_func(
     image: torch.Tensor,      
-) -> Tuple[Tuple[int, int], torch.Tensor]:
+) -> Tuple[torch.Tensor, torch.Tensor]:
     x, y = random.randint(1, 10), random.randint(1, 10)
-    return ((x, y), torch.rand(28, 28))
+    return (torch.tensor([x, y]), torch.rand(28, 28))
 
 class OnlineDataLoader(pynt.Behavior):
     """
@@ -41,10 +41,10 @@ class OnlineDataLoader(pynt.Behavior):
         self.interval = self.iterations // self.data_set.size(0)
         neuron.focus_loc = self.saccade_infos[0]
         return super().initialize(neuron)
-    
+
     def forward(self, neuron):
         image_idx =  neuron.network.iteration // self.interval
-        if image_idx < self.data_set.size(0) and neuron.network.iteration % self.batch_number == 0:
+        if image_idx < self.data_set.size(0) and neuron.network.iteration % (self.interval // self.batch_number) == 0:
             self.saccade_infos = hypo_func(self.data_set[image_idx])
         neuron.focus_loc = self.saccade_infos[0]
         spikes = self.poisson_coder(img=self.saccade_infos[1])
