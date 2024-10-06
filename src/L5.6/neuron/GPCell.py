@@ -39,7 +39,6 @@ class GPCell(LIF):
         )
 
     def initialize(self, neurons):
-
         super().initialize(neurons)
 
         self.L = self.parameter("L", 1)
@@ -69,33 +68,8 @@ class GPCell(LIF):
         if newPosX.numel() and newPosY.numel():
             neurons.I.view(self.shape[2], self.shape[1])[newPosY, newPosX] += self.I_amp
 
-        neurons.v += (
-            (self._Fu(neurons) + self._RIu(neurons)) * neurons.network.dt / neurons.tau
-        )
+        super().forward(neurons)
 
     def Fire(self, neurons):
-
-        neurons.spikes = neurons.v >= neurons.threshold
-        neurons.v[neurons.spikes] = neurons.v_reset
-
+        super().Fire(neurons)
         neurons.spike_prev = neurons.spikes
-
-
-class SampleAncher(pynt.Behavior):
-    """
-    Sample Input Neuron to activate the anchering of GPCells in first iteration.
-
-    Args :
-        ----
-    """
-
-    def initialize(self, neurons):
-        neurons.I = neurons.vector("zeros")
-        neurons.spikes = neurons.vector("zeros")
-        neurons.v = neurons.vector(-80)
-
-    def forward(self, neurons):
-        if neurons.network.iteration == 1:
-            neurons.spikes = neurons.vector(1)
-        else:
-            neurons.spikes = neurons.vector(0)

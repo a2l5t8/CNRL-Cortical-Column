@@ -2,6 +2,8 @@ from pymonntorch import *
 from conex import *
 import torch
 
+from network.payoff import ConfidenceLevelPayOff
+
 class FC() :
     """
     Fully Connected Layer works as the decision making layer (Classifier) using EI populations and competition.
@@ -27,8 +29,18 @@ class FC() :
         self.net = net
         if(net == None) : 
             self.net = Network(behavior = prioritize_behaviors([
-                TimeResolution(dt = 1)
-            ]))
+                TimeResolution(dt = 1),
+                Dopamine(tau_dopamine = 20),
+            ]) | ({
+                100 : ConfidenceLevelPayOff()
+            }))
+        
+
+        """
+        add R-STDP configuration and Behaviors
+
+        """
+        net.add_behavior(prioritize_behaviors([Dopamine(tau_dopamine = 20)]) | ({100 : ConfidenceLevelPayOff()}))
 
         self.input_layer = input_layer
 
@@ -39,7 +51,9 @@ class FC() :
         self.create_neuron_groups(N, K)
         self.create_synapses(K)
         self.create_layer()
-        self.create_input_connection(input_layer)
+
+        if(input_layer != None) : 
+            self.create_input_connection(input_layer)
 
 
     def create_neuron_groups(self, N, K) : 
@@ -63,7 +77,7 @@ class FC() :
                         v_reset = -67,
                         init_v =  -65,
                     ),
-                    InherentNoise(scale=random.randint(20, 60)),
+                    # InherentNoise(scale=random.randint(20, 60)),
                     Fire(),
                     NeuronAxon()
                 ]) | ({ 
@@ -81,6 +95,7 @@ class FC() :
             behavior = prioritize_behaviors([
                 SimpleDendriteStructure(),
                 SimpleDendriteComputation(),
+                SpikeTrace(tau_s = 20),
                 LIF(
                     R = 10,
                     tau = 5,
@@ -150,7 +165,18 @@ class FC() :
         Creating a Layer container for the whole decision-making network and their synapses between themselves.
         """
 
-        pass
+        self.layer = Layer(
+            net = self.net,
+            neurongroups = self.net.NeuronGroups,
+            synapsegroups = self.net.SynapseGroups,
+            input_ports = {
+                "input" : (
+                    None,
+                    [Port(object=self.E_NG_list[i]) for i in range(self.K)]
+                )
+            }
+        )
+
 
     def create_input_connection(self, input_layer) : 
         """
@@ -170,7 +196,7 @@ class FC() :
                             SynapseInit(),
                             WeightInitializer(),
                             SimpleDendriticInput(),
-                            SimpleSTDP(a_plus = 0.1 , a_minus = 0.002)
+                            SimpleRSTDP(a_plus = 0.1 , a_minus = 0.002)
                         ]
                     ),
                     "Proximal",
