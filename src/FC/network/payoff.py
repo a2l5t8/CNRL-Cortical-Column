@@ -24,32 +24,55 @@ class ConfidenceLevelPayOff(Payoff) :
         """
         
         super().initialize(network)
-        self.confidence_level = self.parameter("confidence_level", 0.6)
+        self.confidence_level = self.parameter("confidence_level", 0.5)
         self.interval = self.parameter("interval", 5)
-        self.max_iter = self.parameter("max_iter", 200)
+        self.max_iter = self.parameter("max_iter", 100)
         
         self.reward = self.parameter("reward", 1)
         self.punish = self.parameter("punish", -1)
 
+        self.low_confidence_interval = 0
+        self.classes = self.parameter("classes", 2)
+
+        network.decision = -1
+
     def forward(self, network) : 
+        if(network.iteration < 2000) : 
+            return
+
         ng_classes = network.find_objects("target")
+        ng = ng_classes[0]
 
         tot = 0
         acts = []
-        for ng in ng_classes :
-            act = torch.sum(ng["spikes", 0][:,0] > max(0, network.iteration - self.interval), 0)
+
+
+        for i in range(self.classes) :
+            a = int(80 * (i + 0))
+            b = int(80 * (i + 1))
+
+            act = 0
+            if(type(ng.spikes) != type(True)) :
+                act = torch.sum(ng.spikes[a:b], 0)
             acts.append(act)
             tot += act
 
+        if(tot == 0) : 
+            network.payoff = 0
+            return 
+
         acts = torch.Tensor(acts)
         acts /= tot
-
-        if(max(acts) < self.confidence_level) : 
+        
+        if(acts.max() < self.confidence_level and self.low_confidence_interval < self.max_iter) : 
+            self.low_confidence_interval += 1
             network.payoff = 0
             return
         
-        prediction = acts.argmax()
-        if(prediction == network.target) : 
+        self.low_confidence_interval = 0
+        network.decision = acts.argmax()
+
+        if(network.decision == network.targets) : 
             network.payoff = self.reward
         else :
             network.payoff = self.punish

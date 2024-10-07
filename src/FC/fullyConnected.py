@@ -2,7 +2,7 @@ from pymonntorch import *
 from conex import *
 import torch
 
-from network.payoff import ConfidenceLevelPayOff
+from FC.network.payoff import ConfidenceLevelPayOff
 
 class FC() :
     """
@@ -30,7 +30,7 @@ class FC() :
         if(net == None) : 
             self.net = Network(behavior = prioritize_behaviors([
                 TimeResolution(dt = 1),
-                Dopamine(tau_dopamine = 20),
+                Dopamine(tau_dopamine = 50),
             ]) | ({
                 100 : ConfidenceLevelPayOff()
             }))
@@ -40,7 +40,8 @@ class FC() :
         add R-STDP configuration and Behaviors
 
         """
-        net.add_behavior(prioritize_behaviors([Dopamine(tau_dopamine = 20)]) | ({100 : ConfidenceLevelPayOff()}))
+        self.net.add_behavior(100, ConfidenceLevelPayOff(punish = -0.5, reward = 0.5), initialize = True)
+        self.net.add_behavior(120, Dopamine(tau_dopamine = 20), initialize = True)
 
         self.input_layer = input_layer
 
@@ -48,49 +49,43 @@ class FC() :
         Network creation 
         """
 
-        self.create_neuron_groups(N, K)
-        self.create_synapses(K)
-        self.create_layer()
+        self.create_neuron_groups_at_once(N, K)
+        self.create_synapses_at_once(K)
+        self.create_layer_at_once()
 
         if(input_layer != None) : 
             self.create_input_connection(input_layer)
 
+    def create_neuron_groups_at_once(self, N, K) : 
 
-    def create_neuron_groups(self, N, K) : 
-
-        """
-        Creation of each EXI neuron group. & Creation of the single, shared INH neuron group.
-        """
-
-        self.E_NG_list = []
-        for i in range(self.K) : 
-            E_NG = NeuronGroup(net = self.net,
-                size = self.E,
-                behavior = prioritize_behaviors([
-                    SimpleDendriteStructure(),
-                    SimpleDendriteComputation(),
-                    LIF(
-                        R = 10,
-                        tau = 5,
-                        threshold = -10,
-                        v_rest = -65,
-                        v_reset = -67,
-                        init_v =  -65,
-                    ),
-                    # InherentNoise(scale=random.randint(20, 60)),
-                    Fire(),
-                    NeuronAxon()
-                ]) | ({ 
-                    600 : Recorder(["I"]),
-                    601 : EventRecorder(['spikes'])
-                })
-            )
-
-            self.E_NG_list.append(E_NG)
-
+        self.E_NG_GROUP = NeuronGroup(net = self.net,
+            size = NeuronDimension(depth = self.K, width = self.E),
+            behavior = prioritize_behaviors([
+                SimpleDendriteStructure(),
+                SimpleDendriteComputation(),
+                LIF(
+                    R = 1,
+                    tau = 5,
+                    threshold = -10,
+                    v_rest = -65,
+                    v_reset = -67,
+                    init_v = -65,
+                ),
+                KWTA(k = 20),
+                # InherentNoise(scale=random.randint(20, 60)),
+                ActivityBaseHomeostasis(window_size=10, activity_rate=20, updating_rate=0.0001),
+                Fire(),
+                SpikeTrace(tau_s=15),
+                NeuronAxon()
+            ]) | ({ 
+                600 : Recorder(["I"]),
+                601 : EventRecorder(['spikes'])
+            }),
+            tag = "target",
+        )
 
         self.I_NG = NeuronGroup(net = self.net,
-            size = self.I * self.K,
+            size = NeuronDimension(width = self.I * self.K),
             tag = "inh",
             behavior = prioritize_behaviors([
                 SimpleDendriteStructure(),
@@ -112,6 +107,109 @@ class FC() :
             })
         )
 
+
+    def create_neuron_groups(self, N, K) : 
+
+        """
+        Creation of each EXI neuron group. & Creation of the single, shared INH neuron group.
+        """
+
+        self.E_NG_list = []
+        for i in range(self.K) : 
+            E_NG = NeuronGroup(net = self.net,
+                size = NeuronDimension(width=self.E),
+                behavior = prioritize_behaviors([
+                    SimpleDendriteStructure(),
+                    SimpleDendriteComputation(),
+                    LIF(
+                        R = 1,
+                        tau = 7,
+                        threshold = -10,
+                        v_rest = -65,
+                        v_reset = -67,
+                        init_v = -65,
+                    ),
+                    # KWTA(k = 100),
+                    # InherentNoise(scale=random.randint(20, 60)),
+                    Fire(),
+                    SpikeTrace(tau_s=15),
+                    NeuronAxon()
+                ]) | ({ 
+                    600 : Recorder(["I"]),
+                    601 : EventRecorder(['spikes'])
+                }),
+                tag = "target",
+            )
+
+            self.E_NG_list.append(E_NG)
+
+
+        self.I_NG = NeuronGroup(net = self.net,
+            size = NeuronDimension(width = self.I * self.K),
+            tag = "inh",
+            behavior = prioritize_behaviors([
+                SimpleDendriteStructure(),
+                SimpleDendriteComputation(),
+                SpikeTrace(tau_s = 20),
+                LIF(
+                    R = 10,
+                    tau = 5,
+                    threshold = -10,
+                    v_rest = -65,
+                    v_reset = -67,
+                    init_v =  -65,
+                ),
+                Fire(),
+                NeuronAxon()
+            ]) | ({ 
+                600 : Recorder(["I"]),
+                601 : EventRecorder(['spikes'])
+            })
+        )
+
+    def create_synapses_at_once(self, K) : 
+
+        self.synapses = []
+        EE_SYN = SynapseGroup(
+            net = self.net,
+            src = self.E_NG_GROUP, 
+            dst = self.E_NG_GROUP, 
+            tag = "Proximal, EXI",
+            behavior = prioritize_behaviors([
+                SynapseInit(),
+                WeightInitializer(mode = 0),
+                SimpleDendriticInput(),
+            ])
+        )
+
+        IE_SYN = SynapseGroup(
+            net = self.net,
+            src = self.I_NG, 
+            dst = self.E_NG_GROUP, 
+            tag = "Proximal, inh",
+            behavior = prioritize_behaviors([
+                SynapseInit(),
+                WeightInitializer(mode = 600),
+                SimpleDendriticInput(),
+            ])
+        )
+
+        EI_SYN = SynapseGroup(
+            net = self.net,
+            src = self.E_NG_GROUP, 
+            dst = self.I_NG, 
+            tag = "Proximal, EXI",
+            behavior = prioritize_behaviors([
+                SynapseInit(),
+                WeightInitializer(mode = "random"),
+                SimpleDendriticInput(),
+            ])
+        )
+
+        self.synapses.append(EE_SYN)
+        self.synapses.append(EI_SYN)
+        self.synapses.append(IE_SYN)
+
     def create_synapses(self, K) : 
 
         """
@@ -121,7 +219,7 @@ class FC() :
             2. EI : exc to inh
             3. IE : inh to exc
         """
-
+        self.synapses = []
         for i in range(self.K) : 
 
             EE_SYN = SynapseGroup(
@@ -131,7 +229,7 @@ class FC() :
                 tag = "Proximal, EXI",
                 behavior = prioritize_behaviors([
                     SynapseInit(),
-                    WeightInitializer(mode = "random"),
+                    WeightInitializer(mode = 0),
                     SimpleDendriticInput(),
                 ])
             )
@@ -143,7 +241,7 @@ class FC() :
                 tag = "Proximal, inh",
                 behavior = prioritize_behaviors([
                     SynapseInit(),
-                    WeightInitializer(mode = 4),
+                    WeightInitializer(mode = 60000),
                     SimpleDendriticInput(),
                 ])
             )
@@ -159,6 +257,24 @@ class FC() :
                     SimpleDendriticInput(),
                 ])
             )
+
+            self.synapses.append(EE_SYN)
+            self.synapses.append(EI_SYN)
+            self.synapses.append(IE_SYN)
+
+    def create_layer_at_once(self) : 
+
+        self.layer = Layer(
+            net = self.net,
+            neurongroups = [self.E_NG_GROUP ,self.I_NG],
+            synapsegroups = self.synapses,
+            input_ports = {
+                "input" : (
+                    None,
+                    [Port(object=self.E_NG_GROUP)]
+                )
+            },
+        )
         
     def create_layer(self) : 
         """
@@ -167,14 +283,14 @@ class FC() :
 
         self.layer = Layer(
             net = self.net,
-            neurongroups = self.net.NeuronGroups,
-            synapsegroups = self.net.SynapseGroups,
+            neurongroups = self.E_NG_list + [self.I_NG],
+            synapsegroups = self.synapses,
             input_ports = {
                 "input" : (
                     None,
                     [Port(object=self.E_NG_list[i]) for i in range(self.K)]
                 )
-            }
+            },
         )
 
 

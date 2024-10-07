@@ -293,7 +293,7 @@ Synapsis_Inp_L4 = Synapsis(
     ]),
     synaptic_tag="Proximal"
 )
-
+    
 
 
 #######################################################
