@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 
 
 def iter_spike_multi_real(
-    pos_x,
-    pos_y,
+    locs,
     ng,
     itr,
     save=False,
@@ -27,8 +26,8 @@ def iter_spike_multi_real(
     ng_idx_prev = ng["spikes", 0][ng["spikes", 0][:, 0] == itr * step - 4][:, 1]
     ng_idx_prev_prev = ng["spikes", 0][ng["spikes", 0][:, 0] == itr * step - 8][:, 1]
 
-    pos_X = torch.Tensor(pos_x)
-    pos_Y = torch.Tensor(pos_y)
+    pos_X = torch.Tensor(locs[:, 0])
+    pos_Y = torch.Tensor(locs[:, 1])
 
     plt.plot(
         (pos_X[prev : itr * step] + base_offset_x) * -1,
@@ -50,8 +49,8 @@ def iter_spike_multi_real(
     plt.legend(loc="upper right")
 
     plt.plot(
-        (pos_x[itr * step] + base_offset_x) * -1,
-        (pos_y[itr * step] + base_offset_y) * -1,
+        (locs[:, 0][itr * step] + base_offset_x) * -1,
+        (locs[:, 1][itr * step] + base_offset_y) * -1,
         "^",
         color="red",
         markersize=10,

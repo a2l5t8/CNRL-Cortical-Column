@@ -6,11 +6,12 @@ from conex import *
 from L423.L423 import SensoryLayer
 from L56 import RefrenceFrames
 
-
 net = Neocortex(dt = 1)
 
-sensory = SensoryLayer(net = net)
-rf = ReferenceFrame(net = net)
+sensory = SensoryLayer(
+    net=net,
+)
+rf = RefrenceFrames(net = net)
 
 cc = CorticalColumn(
     net = net,

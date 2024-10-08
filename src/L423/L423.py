@@ -3,10 +3,37 @@ import torch
 from pymonntorch import *
 from conex import *
 
+### parameters
+DoG_SIZE = 5
+IMAGE_WIDTH = 28
+IMAGE_HEIGHT = 28
+
+OUT_CHANNEL = 5
+IN_CHANNEL = 1
+KERNEL_WIDTH = 7
+KERNEL_HEIGHT = 7
+
+INPUT_WIDTH = IMAGE_WIDTH - DoG_SIZE + 1
+INPUT_HEIGHT = IMAGE_HEIGHT - DoG_SIZE + 1
+
+L4_WIDTH = INPUT_WIDTH - KERNEL_WIDTH + 1
+L4_HEIGHT = INPUT_HEIGHT - KERNEL_HEIGHT + 1
+
+L23_WIDTH = L4_WIDTH//2
+L23_HEIGHT = L4_HEIGHT//2
+
+J_0 = 300
+p = 0.8
+
+
 class SensoryLayer() :
 
-    def __init__(self, net) : 
-        
+    def __init__(
+        self, 
+        net,
+
+    ) : 
+
         self.net = net
         self.layer = None
         self.create_L4()
