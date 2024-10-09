@@ -49,17 +49,16 @@ class GPCell(LIF):
         neurons.spike_prev = neurons.vector("zeros") < 0
 
     def forward(self, neurons):
-
         newPosX = (
             neurons.x[neurons.spike_prev]
             + (self.shape[1] - 1) / 2
-            + self.V[0][neurons.network.iteration] * self.L
+            + neurons._v[0] * self.L
         )
 
         newPosY = (
             neurons.y[neurons.spike_prev]
             + (self.shape[2] - 1) / 2
-            + self.V[1][neurons.network.iteration] * self.L
+            + neurons._v[1] * self.L
         )
 
         newPosX = torch.round(newPosX).to(dtype=torch.int32) % self.shape[1]

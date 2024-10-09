@@ -4,10 +4,10 @@ import conex as cnx
 
 from pymonntorch import Recorder, EventRecorder, NeuronGroup, NeuronDimension, SynapseGroup
 
-from synapse.GPCell_lateral_inhibition import GPCellLateralInhibition
-from tools.rat_simulation import speed_vector_converter, generate_walk
-from stimuli.current_base import ConstantCurrent
-from neuron.GPCell import GPCell
+from .synapse.GPCell_lateral_inhibition import GPCellLateralInhibition
+from .tools.rat_simulation import speed_vector_converter, generate_walk
+from .stimuli.current_base import ConstantCurrent
+from .neuron.GPCell import GPCell
 
 class RefrenceFrame():
     """
