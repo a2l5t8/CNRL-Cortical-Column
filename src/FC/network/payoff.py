@@ -37,7 +37,7 @@ class ConfidenceLevelPayOff(Payoff) :
         network.decision = -1
 
     def forward(self, network) : 
-        if(network.iteration < 2000) : 
+        if(network.iteration < 4000) : 
             return
 
         ng_classes = network.find_objects("target")

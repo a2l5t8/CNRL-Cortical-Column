@@ -147,6 +147,7 @@ input_layer = InputLayer(
 
 L4 = L4(net = net, IN_CHANNEL = IN_CHANNEL, OUT_CHANNEL = OUT_CHANNEL, HEIGHT = L4_HEIGHT, WIDTH = L4_WIDTH, INH_SIZE = 7)
 L23 = L23(net = net, IN_CHANNEL = IN_CHANNEL, OUT_CHANNEL = OUT_CHANNEL, HEIGHT = L23_HEIGHT, WIDTH = L23_WIDTH)
+fclayer = fullyConnected.FC(net = net, N = 100, K = 2)
 
 
 Synapsis_L4_L23 = Synapsis(
@@ -178,7 +179,34 @@ Synapsis_Inp_L4 = Synapsis(
     synaptic_tag="Proximal"
 )
 
+Synapsis_L23_FC = Synapsis(
+    net = net,
+    src = L23,
+    dst = fclayer.layer,
+    input_port="output",
+    output_port="input",
+    synapsis_behavior=prioritize_behaviors([
+        SynapseInit(),
+        WeightInitializer(mode = "random"),
+        SimpleDendriticInput(current_coef = 16),
+        WeightNormalization(norm = 30),
+    ]) | ({
+        400 : AttentionBasedRSTDP(a_plus = 0.08 , a_minus = 0.04, tau_c = 10, attention_plus = 1.5, attention_minus = -1),
+    }),
+    synaptic_tag="Proximal"
+)
+
 net.initialize()
-net.simulate_iterations(6000)
+net.simulate_iterations(12000)
 
 show_filters(Synapsis_Inp_L4.synapses[0].weights)
+
+
+plt.figure(figsize=(16, 6))
+plt.plot(fclayer.E_NG_GROUP['spikes.t', 0][fclayer.E_NG_GROUP['spikes', 0][:,1] < 80], fclayer.E_NG_GROUP['spikes.i', 0][fclayer.E_NG_GROUP['spikes', 0][:,1] < 80], '.')
+plt.plot(fclayer.E_NG_GROUP['spikes.t', 0][fclayer.E_NG_GROUP['spikes', 0][:,1] > 80], fclayer.E_NG_GROUP['spikes.i', 0][fclayer.E_NG_GROUP['spikes', 0][:,1] > 80] + 50, '.')
+plt.show()
+
+plt.figure(figsize=(16, 6))
+plt.plot(net["dopamine", 0])
+plt.show()
