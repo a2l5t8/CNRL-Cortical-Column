@@ -9,6 +9,5 @@ class SetTarget(Behavior) :
         network.targets = self.network_target[0]
 
     def forward(self, network) :
-
         network.targets = self.network_target[network.iteration]
         network.dopamine = torch.Tensor([network.dopamine_concentration])

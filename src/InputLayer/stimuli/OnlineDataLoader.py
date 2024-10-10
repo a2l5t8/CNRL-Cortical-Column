@@ -23,8 +23,10 @@ def confidence_crop_interspace(image: torch.Tensor, window_width: int, window_he
     y1 = window_height//2 
     y2 = (inp_height - 1) - (window_height//2)
 
-    center_x = random.randint(x1, x2)
-    center_y = random.randint(y1, y2)
+    # import pdb;pdb.set_trace()
+
+    center_x = random.randint(x2, x1)
+    center_y = random.randint(y2, y1)
     center_coordinates = [center_x, center_y]
     top_left_x = center_x - (window_width//2)
     top_left_y = center_y - (window_height//2)
@@ -45,12 +47,20 @@ class OnlineDataLoader(pynt.Behavior):
         data_set: torch.Tensor,
         batch_number: int,
         iterations: int,
+        window_size: int,
         ratio: float = 1,
         rest_interval: int = 5,
         *args, 
         **kwargs,
     ):
-        super().__init__(data_set = data_set, batch_number = batch_number, iterations=iterations, ratio=ratio, *args, **kwargs)
+        super().__init__(
+            data_set = data_set, 
+            batch_number = batch_number, 
+            iterations=iterations, 
+            ratio=ratio, 
+            window_size=window_size,
+            rest_interval=rest_interval, 
+            *args, **kwargs)
 
     def initialize(self, neuron):
         self.data_set = self.parameter("data_set", required=True)
@@ -58,8 +68,9 @@ class OnlineDataLoader(pynt.Behavior):
         self.ratio = self.parameter("ratio", 1)
         self.iterations = self.parameter("iterations", required=True)
         self.rest_interval = self.parameter("rest_interval", 5)
+        self.window_size = self.parameter("window_size", required=True)
         self.poisson_coder = SimplePoisson(time_window=1, ratio=self.ratio)
-        self.saccade_infos = confidence_crop_interspace(self.data_set[0], window_height=14, window_width=14)
+        self.saccade_infos = confidence_crop_interspace(self.data_set[0], window_height=self.window_size, window_width=self.window_size)
         self.interval = self.iterations // self.data_set.size(0) + self.rest_interval
         neuron.focus_loc = self.saccade_infos[0][0]
         return super().initialize(neuron)
@@ -68,11 +79,12 @@ class OnlineDataLoader(pynt.Behavior):
         image_idx =  neuron.network.iteration // self.interval
         if image_idx < self.data_set.size(0) and neuron.network.iteration % (self.interval // self.batch_number) == 0:
             # self.saccade_infos = hypo_func(self.data_set[image_idx])
-            self.saccade_infos = confidence_crop_interspace(self.data_set[image_idx], window_height=14, window_width=14)
+            self.saccade_infos = confidence_crop_interspace(self.data_set[image_idx], window_height=self.window_size, window_width=self.window_size)
         neuron.focus_loc = self.saccade_infos[0][0]
+        import pdb;pdb.set_trace()
         if self.interval - self.rest_interval > neuron.network.iteration - image_idx * self.interval:
-            print(neuron.network.iteration)
             spikes = self.poisson_coder(img=self.saccade_infos[1])
+            print(spikes)
             neuron.v[spikes.view(-1)] = neuron.threshold + 1e-2
         return super().forward(neuron)
     

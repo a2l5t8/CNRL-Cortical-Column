@@ -10,6 +10,7 @@ class DataLoaderLayer():
         data_loader,
         widnow_size,
         saccades_on_each_image,
+        rest_interval,
         iterations,
     ):
         self.net = net
@@ -17,7 +18,7 @@ class DataLoaderLayer():
         self.window_size = widnow_size
         self.saccades_on_each_image = saccades_on_each_image
         self.iterations = iterations
-        super().__init__(self)
+        self.rest_interval = rest_interval
         
     def build_data_loader(self):
         loader_neuron_group = NeuronGroup(
@@ -35,13 +36,16 @@ class DataLoaderLayer():
                     threshold=-60,
                 ),
                 Fire(),
+                SpikeTrace(tau_s = 3),
                 NeuronAxon(),
             ]) | {
                 270: OnlineDataLoader(
-                    # data_set=self.dl.dataset, 
-                    data_set=torch.rand(5, widnow_size, widnow_size,),
+                    data_set=self.dl.dataset, 
+                    # data_set=torch.rand(5, widnow_size, widnow_size,),
+                    window_size=self.window_size,
                     batch_number=self.saccades_on_each_image,
-                    iterations=self.iterations
+                    iterations=self.iterations,
+                    rest_interval = self.rest_interval
                 ),
                 600: Recorder(["focus_loc"]),
                 601: EventRecorder(["spikes"]),
@@ -50,6 +54,12 @@ class DataLoaderLayer():
         return Layer(
             net=self.net,
             neurongroups = [loader_neuron_group],
-            tag="loader_layer"
-)
+            tag="loader_layer",
+            output_ports={
+                "data_out": (
+                    None,
+                    [Port(object = loader_neuron_group, label = None)]
+                )
+            }
+        )
 

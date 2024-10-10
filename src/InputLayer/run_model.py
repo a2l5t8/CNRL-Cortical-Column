@@ -60,6 +60,7 @@ Input_Height = 28
 Crop_Window_Width = 21
 Crop_Window_Height = 21
 DoG_SIZE = 5
+rest_interval = 20
 
 IMAGE_WIDTH = 28
 IMAGE_HEIGHT = 28
@@ -224,8 +225,10 @@ loader_neuron_group = NeuronGroup(
             NeuronAxon(),
         ]) | {
             270: OnlineDataLoader(
-                data_set=torch.rand(image_numbers, image_size, image_size), 
+                # data_set=torch.rand(image_numbers, image_size, image_size), 
+                data_set=dl.dataset,
                 batch_number=saccades_on_each_image,
+                rest_interval=rest_interval,
                 iterations=iterations
             ),
             600: Recorder(["focus_loc"]),

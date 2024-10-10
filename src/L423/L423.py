@@ -27,6 +27,7 @@ class L4() :
         """
 
         self.net = net,
+        self.net = self.net[0]
         self.config = {
             "HEIGHT" : HEIGHT,
             "WIDTH" : WIDTH,
@@ -49,7 +50,7 @@ class L4() :
 
         J0 = self.config["J0"]
         p = self.config["p"]
-
+        
         self.ng_e = NeuronGroup(
             size = NeuronDimension(depth = self.config["OUT_CHANNEL"] , height = self.config["HEIGHT"], width = self.config["WIDTH"]),
             net = self.net, 
@@ -99,6 +100,9 @@ class L4() :
         """
         adds synapses between exi and inh neuron groups to create a balanced network, it contains lateralinhibtion for exi neuron group.
         """
+        
+        J0 = self.config["J0"]
+        p = self.config["p"]
 
         self.sg_ei = SynapseGroup(
             net = self.net,
@@ -108,7 +112,7 @@ class L4() :
             behavior = prioritize_behaviors([
                 SimpleDendriticInput(),
                 SynapseInit(),
-                WeightInitializer(mode = "ones", scale = J_0/math.sqrt(1600 * p), density = 0.02, true_sparsity = False),
+                WeightInitializer(mode = "ones", scale = J0/math.sqrt(1600 * p), density = 0.02, true_sparsity = False),
             ])
         )
 
@@ -121,7 +125,7 @@ class L4() :
             behavior = prioritize_behaviors([
                 SimpleDendriticInput(),
                 SynapseInit(),
-                WeightInitializer(mode = "ones", scale = J_0/math.sqrt(1600 * p), density = 0.02, true_sparsity = False),
+                WeightInitializer(mode = "ones", scale = J0/math.sqrt(1600 * p), density = 0.02, true_sparsity = False),
             ])
         )
 
@@ -148,7 +152,7 @@ class L4() :
             behavior = prioritize_behaviors([
                 SimpleDendriticInput(),
                 SynapseInit(),
-                WeightInitializer(mode = "ones", scale = J_0/math.sqrt(1600 * p), density = 0.02, true_sparsity = False),
+                WeightInitializer(mode = "ones", scale = J0/math.sqrt(1600 * p), density = 0.02, true_sparsity = False),
             ])
         )
 
@@ -201,6 +205,7 @@ class L23() :
         """    
 
         self.net = net,
+        self.net = self.net[0]
         self.config = {
             "HEIGHT" : HEIGHT,
             "WIDTH" : WIDTH,
@@ -265,6 +270,8 @@ class L23() :
         """
         adds synapses between exi and inh neuron groups to create a balanced network, it contains lateralinhibtion for exi neuron group.
         """
+        J_0 = self.config["J0"]
+        p = self.config["p"]
 
         self.sg_ei = SynapseGroup(
             net = self.net,
