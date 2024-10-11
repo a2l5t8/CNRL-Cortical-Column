@@ -40,8 +40,8 @@ class FC() :
         add R-STDP configuration and Behaviors
 
         """
-        self.net.add_behavior(100, ConfidenceLevelPayOff(punish = -0.5, reward = 0.5), initialize = True)
-        self.net.add_behavior(120, Dopamine(tau_dopamine = 20), initialize = True)
+        self.net.add_behavior(100, ConfidenceLevelPayOff(punish = -0.8, reward = 0.8), initialize = True)
+        self.net.add_behavior(120, Dopamine(tau_dopamine = 50), initialize = True)
 
         self.input_layer = input_layer
 
@@ -71,9 +71,9 @@ class FC() :
                     v_reset = -67,
                     init_v = -65,
                 ),
-                KWTA(k = 20),
+                KWTA(k = 15),
                 # InherentNoise(scale=random.randint(20, 60)),
-                ActivityBaseHomeostasis(window_size=10, activity_rate=20, updating_rate=0.0001),
+                ActivityBaseHomeostasis(window_size=40, activity_rate=7, updating_rate=0.0001),
                 Fire(),
                 SpikeTrace(tau_s=15),
                 NeuronAxon()
@@ -92,7 +92,7 @@ class FC() :
                 SimpleDendriteComputation(),
                 SpikeTrace(tau_s = 20),
                 LIF(
-                    R = 10,
+                    R = 4,
                     tau = 5,
                     threshold = -10,
                     v_rest = -65,
@@ -129,7 +129,7 @@ class FC() :
                         v_reset = -67,
                         init_v = -65,
                     ),
-                    # KWTA(k = 100),
+                    KWTA(k = 35),
                     # InherentNoise(scale=random.randint(20, 60)),
                     Fire(),
                     SpikeTrace(tau_s=15),
@@ -229,7 +229,7 @@ class FC() :
                 tag = "Proximal, EXI",
                 behavior = prioritize_behaviors([
                     SynapseInit(),
-                    WeightInitializer(mode = 0),
+                    WeightInitializer(mode = 1000),
                     SimpleDendriticInput(),
                 ])
             )
@@ -241,7 +241,7 @@ class FC() :
                 tag = "Proximal, inh",
                 behavior = prioritize_behaviors([
                     SynapseInit(),
-                    WeightInitializer(mode = 60000),
+                    WeightInitializer(mode = 10000),
                     SimpleDendriticInput(),
                 ])
             )
@@ -312,7 +312,7 @@ class FC() :
                             SynapseInit(),
                             WeightInitializer(),
                             SimpleDendriticInput(),
-                            SimpleRSTDP(a_plus = 0.1 , a_minus = 0.002)
+                            SimpleRSTDP(a_plus = 0.9 , a_minus = 0.008)
                         ]
                     ),
                     "Proximal",
