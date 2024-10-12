@@ -77,14 +77,13 @@ class OnlineDataLoader(pynt.Behavior):
 
     def forward(self, neuron):
         image_idx =  neuron.network.iteration // self.interval
+        neuron.network.targets = neuron.network.network_target[image_idx]
         if image_idx < self.data_set.size(0) and neuron.network.iteration % (self.interval // self.batch_number) == 0:
             # self.saccade_infos = hypo_func(self.data_set[image_idx])
             self.saccade_infos = confidence_crop_interspace(self.data_set[image_idx], window_height=self.window_size, window_width=self.window_size)
         neuron.focus_loc = self.saccade_infos[0][0]
-        import pdb;pdb.set_trace()
         if self.interval - self.rest_interval > neuron.network.iteration - image_idx * self.interval:
             spikes = self.poisson_coder(img=self.saccade_infos[1])
-            print(spikes)
             neuron.v[spikes.view(-1)] = neuron.threshold + 1e-2
         return super().forward(neuron)
     
