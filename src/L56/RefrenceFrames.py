@@ -8,6 +8,7 @@ from .synapse.GPCell_lateral_inhibition import GPCellLateralInhibition
 from .tools.rat_simulation import speed_vector_converter, generate_walk
 from .stimuli.current_base import ConstantCurrent
 from .neuron.GPCell import GPCell
+from .synapse.vDistributor import vDistributor
 
 class RefrenceFrame():
     """
@@ -19,19 +20,13 @@ class RefrenceFrame():
         k: int,
         refrence_frame_side: int,
         inhibitory_size: int,
-        random_walk: bool = True,
         lateral_inhibition: bool = True,
         competize: bool = True,
-        pos_x: list = None,
-        pos_y: list = None,
         net: cnx.Neocortex = None
     ) -> None:
         self.net = net
         if not self.net:
-            self.net = cnx.Neocortex(dt=1)
-        self.pos_x, self.pos_y = pos_x, pos_y
-        if random_walk:
-            self.pos_x, self.pos_y = generate_walk(length=100, R=10)        
+            self.net = cnx.Neocortex(dt=1)        
         self.k = k
         self.side = refrence_frame_side
         self.inh_side = inhibitory_size
@@ -42,9 +37,25 @@ class RefrenceFrame():
             self.add_competition()
         if lateral_inhibition:
             self.add_lateral_inhibition()
-        
+        self.add_input_neuron()
         self.layer = self.build_layer()
-        
+    
+    def add_input_neuron(self):
+        ng = cnx.NeuronGroup(
+            net=self.net,
+            size = 1,
+            tag=f"InputRefrenceFrame",
+            behavior=cnx.prioritize_behaviors(
+                    [
+                        cnx.SimpleDendriteStructure(),
+                        cnx.SimpleDendriteComputation(apical_provocativeness=0.9),
+                        cnx.Fire(),
+                        cnx.KWTA(k=10),
+                        cnx.NeuronAxon(),
+                    ]
+                )
+        )
+        self.neuron_groups.append(ng)
     
     def add_refrence_frame(self, id: int):
         ng = cnx.NeuronGroup(
@@ -56,7 +67,7 @@ class RefrenceFrame():
                         cnx.SimpleDendriteStructure(),
                         cnx.SimpleDendriteComputation(apical_provocativeness=0.9),
                         cnx.Fire(),
-                        # KWTA(k=10),
+                        cnx.KWTA(k=10),
                         cnx.NeuronAxon(),
                     ]
                 )
@@ -71,7 +82,6 @@ class RefrenceFrame():
                             v_reset=-67,
                             L=10,
                             I_amp = 20,
-                            V=speed_vector_converter(self.pos_x, self.pos_y),
                             init_v=torch.tensor([-67]).expand(self.side * self.side).clone().to(dtype=torch.float32)
                         ),
                         600: Recorder(["I", "v"]),
@@ -84,6 +94,21 @@ class RefrenceFrame():
     def create_refrence_frames(self):
         for ng_id in range(self.k):
             self.add_refrence_frame(id=ng_id)
+    
+    def input_neuron_to_refrences_syn(self):
+        for refrence_frame in self.neuron_groups:
+            if "RefrenceFrame" in refrence_frame.tags:
+                input_to_refrence = cnx.SynapseGroup(
+                    net = self.net,
+                    tag = "input_to_refrence, Proximal",
+                    src = self.neuron_groups[-1],
+                    dst = refrence_frame,
+                    behavior = 
+                    {
+                        275: vDistributor()
+                    }
+                )
+                self.synapse_groupes.append(input_to_refrence)
     
     def add_competion_syn(self, inhibitory: NeuronGroup):
         for neuron_group in self.neuron_groups:
@@ -177,7 +202,8 @@ class RefrenceFrame():
             net=self.net,
             neurongroups=self.neuron_groups,
             synapsegroups=self.synapse_groupes,
-            tag="layer_5_6"
+            tag="layer_5_6",
+            input_ports= {"input": (None, list(map(lambda x: cnx.Port(object = x, label = None), self.neuron_groups)))}
         )
 
 

@@ -25,6 +25,8 @@ from src.FC.synapse.learning import AttentionBasedRSTDP
 from src.L423.network.SetTarget import *
 from src.L423.L423 import L4, L23
 from src.InputLayer.DataLoaderLayer import DataLoaderLayer
+from src.L56.RefrenceFrames import RefrenceFrame
+from src.InputLayer.synapse.LocationCoder import LocationCoder
 
 
 #######################################################
@@ -124,6 +126,9 @@ net = Neocortex(dt=1, dtype=torch.float32, behavior = prioritize_behaviors(
     ]
     ) | {5 : SetTarget(target = target), 601 : Recorder(["dopamine"])})
 
+#######################################################
+####################### Network Layers ################
+#######################################################
 
 input_layer = DataLoaderLayer(
     net=net,
@@ -133,9 +138,22 @@ input_layer = DataLoaderLayer(
     rest_interval=10,
     iterations=iterations
 )
+
+L56 = RefrenceFrame(
+    net = net, 
+    k = 2, 
+    refrence_frame_side=28, 
+    inhibitory_size=15
+)
+
 L4 = L4(net = net, IN_CHANNEL = IN_CHANNEL, OUT_CHANNEL = OUT_CHANNEL, HEIGHT = L4_HEIGHT, WIDTH = L4_WIDTH, INH_SIZE = 7)
 L23 = L23(net = net, IN_CHANNEL = IN_CHANNEL, OUT_CHANNEL = OUT_CHANNEL, HEIGHT = L23_HEIGHT, WIDTH = L23_WIDTH)
+input_layer = input_layer.build_data_loader()
+L56 = L56.build_layer()
 
+#######################################################
+####################### Connections ###################
+#######################################################
 
 Synapsis_L4_L23 = Synapsis(
     net = net,
@@ -150,7 +168,7 @@ Synapsis_L4_L23 = Synapsis(
     synaptic_tag="Proximal"
 )
 
-input_layer = input_layer.build_data_loader()
+
 
 Synapsis_Inp_L4 = Synapsis(
     net = net,
@@ -165,6 +183,20 @@ Synapsis_Inp_L4 = Synapsis(
         Conv2dSTDP(a_plus=0.3, a_minus=0.0008),
         WeightNormalization(norm = 4)
     ]),
+    synaptic_tag="Proximal"
+)
+
+
+Synapsis_Inp_L56 = Synapsis(
+    net = net,
+    src = input_layer,
+    dst = L56,
+    input_port = "data_out",
+    output_port = "input",
+    synapsis_behavior=prioritize_behaviors([
+        SynapseInit(),]) | {
+        275: LocationCoder()
+    },
     synaptic_tag="Proximal"
 )
 
