@@ -31,6 +31,7 @@ class RefrenceFrame():
         self.side = refrence_frame_side
         self.inh_side = inhibitory_size
         self.neuron_groups = []
+        self.refrences = []
         self.synapse_groupes = []
         self.create_refrence_frames()
         if competize:
@@ -90,6 +91,7 @@ class RefrenceFrame():
                 ),
             )
         self.neuron_groups.append(ng)
+        self.refrences.append(ng)
 
     def create_refrence_frames(self):
         for ng_id in range(self.k):
@@ -203,7 +205,7 @@ class RefrenceFrame():
             neurongroups=self.neuron_groups,
             synapsegroups=self.synapse_groupes,
             tag="layer_5_6",
-            input_ports= {"input": (None, list(map(lambda x: cnx.Port(object = x, label = None), self.neuron_groups)))}
+            input_ports= {"input": (None, list(map(lambda x: cnx.Port(object = x, label = None), self.refrences)))}
         )
 
 

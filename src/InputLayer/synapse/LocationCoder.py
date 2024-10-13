@@ -12,6 +12,7 @@ class LocationCoder(pynt.Behavior):
     def initialize(self, synapse):
         self.last_position = synapse.src.focus_loc
         synapse.dst._v = torch.tensor([0, 0])
+        synapse.I = synapse.matrix().view(-1)
         return super().initialize(synapse)
 
     def is_locs_equal(self, synapse):
