@@ -38,7 +38,7 @@ class RefrenceFrame():
             self.add_competition()
         if lateral_inhibition:
             self.add_lateral_inhibition()
-        self.add_input_neuron()
+        # self.add_input_neuron()
         self.layer = self.build_layer()
     
     def add_input_neuron(self):
