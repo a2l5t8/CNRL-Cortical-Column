@@ -62,107 +62,15 @@ L23_HEIGHT = L4_HEIGHT//2
 J_0 = 300
 p = 0.8
 
-# net = Neocortex(dt = 1)
-
-# sensory = SensoryLayer(
-#     net=net,
-# )
-# rf = RefrenceFrame(net = net)
-
-# cc_connection_L4_L23 = CorticalLayerConnection(
-#     net = net,
-#     src = L4.layer,
-#     dst = L23.layer,
-#     synapsis_behavior=prioritize_behaviors([
-#         SynapseInit(),
-#         AveragePool2D(current_coef = 50000),
-#     ]),
-#     synaptic_tag="Proximal"
-# )
-
-# cc_connection_L23_L56 = CorticalLayerConnection(
-#     net=net,
-#     src = L4
-# )
-
-
-
-# Synapsis_Inp_L4 = CorticalLayerConnection(
-#     net = net,
-#     src = input_layer,
-#     dst = L4.layer,
-#     synapsis_behavior=prioritize_behaviors([
-#         SynapseInit(),
-#         WeightInitializer(weights = torch.normal(0.1, 2, (OUT_CHANNEL, IN_CHANNEL, KERNEL_HEIGHT, KERNEL_WIDTH)) ),
-#         Conv2dDendriticInput(current_coef = 20000 , stride = 1, padding = 0),
-#         Conv2dSTDP(a_plus=0.3, a_minus=0.0008),
-#         WeightNormalization(norm = 4)
-#     ]),
-#     synaptic_tag="Proximal"
-# )
-
-
-# Synapsis_Inp_L56 = Synapsis(
-#     net = net,
-#     src = input_layer,
-#     dst = L56_layer,
-#     input_port = "data_out",
-#     output_port = "input",
-#     synapsis_behavior=prioritize_behaviors([
-#         SynapseInit(),]) | {
-#         275: LocationCoder()
-#     },
-#     synaptic_tag="Proximal"
-# )
-
-# cc = CorticalColumn(
-#     net = net,
-#     layers={
-#         "L4" : sensory.L4,
-#         "L23" : sensory.L23,
-#         "L56" : rf.layer,
-#     },
-#     layer_connections = [
-#         ("L4", "L23", cc_connection_L4_L23),
-#         ("L23", "L56", cc_connection_L23_L56),
-#         ("L56", "L23", cc_connection_L56_L23),
-#     ],
-#     input_ports = {
-#         "sensory_input" : (None, Port(object = sensory.L4, label = "input")),
-#         "location_input" : (None, Port(object = rf.layer, label = "input")),
-#     },
-#     output_ports = {
-#         "sensory_output" : (None, Port(object = sensory.L23, label = "output")),
-#         "location_output" : (None, Port(object = rf.layer, label = "output")),
-#     }
-# )
-
-
-# synapsis_sensory_input_cc = Synapsis(
-#     net = net,
-#     src = input_layer,
-#     dst = cc,
-#     input_port = "data_out",
-#     output_port = "sensnory_input",
-#     synapsis_behavior=prioritize_behaviors([
-#         SynapseInit(),
-#         WeightInitializer(weights = torch.normal(0.1, 2, (OUT_CHANNEL, IN_CHANNEL, KERNEL_HEIGHT, KERNEL_WIDTH)) ),
-#         Conv2dDendriticInput(current_coef = 10000 , stride = 1, padding = 0),
-#         Conv2dSTDP(a_plus=0.3, a_minus=0.008),
-#         WeightNormalization(norm = 10)
-#     ]),
-#     synaptic_tag="Proximal"
-# )
 
 class NeoCorticalColumn():
+    """
+        Note: Do not use this container, not completed yet!
+    """
     def __init__(
         self,
         net: Neocortex = None,
     ):  
-        ### in test
-        target = [0] * 10 + [1] * 10
-        target = torch.Tensor(target)
-        ###
         
         self.net = net
         if not self.net:
@@ -176,7 +84,7 @@ class NeoCorticalColumn():
                             Payoff(initial_payoff = 1),
                             Dopamine(tau_dopamine = 5),
                         ]
-                ) | {5 : SetTarget(target = target), 601 : Recorder(["dopamine"])}
+                ) | {601 : Recorder(["dopamine"])}
             )
 
         ### layers
@@ -191,6 +99,8 @@ class NeoCorticalColumn():
         self.L4 = L4(net = self.net, IN_CHANNEL = IN_CHANNEL, OUT_CHANNEL = OUT_CHANNEL, HEIGHT = L4_HEIGHT, WIDTH = L4_WIDTH, INH_SIZE = 7).layer
         self.L23 = L23(net = self.net, IN_CHANNEL = IN_CHANNEL, OUT_CHANNEL = OUT_CHANNEL, HEIGHT = L23_HEIGHT, WIDTH = L23_WIDTH).layer   
 
+        self.transformation = None
+        
         ### connections
         cc_connection_L23_L56 = ("L23", "L56", self._L23_L56_cc_connection())
         cc_connection_L56_L23 = ("L56", "L23", self._L56_L23_cc_connection())
@@ -270,10 +180,7 @@ class NeoCorticalColumn():
             dst=l23,
             behavior=prioritize_behaviors([
                 SynapseInit(),
-                WeightInitializer(weights = torch.normal(0.1, 2, (OUT_CHANNEL, IN_CHANNEL, KERNEL_HEIGHT, KERNEL_WIDTH)) ),
-                Conv2dDendriticInput(current_coef = 20000 , stride = 1, padding = 0),
-                Conv2dSTDP(a_plus=0.3, a_minus=0.0008),
-                WeightNormalization(norm = 4)
+                AveragePool2D(current_coef = 50000),
             ]),
             tag="Proximal"
         )
@@ -281,8 +188,84 @@ class NeoCorticalColumn():
         clc.src = self.L4
         clc.dst = self.L23
         return clc
+    
+    def inject_input(
+        self,
+        dataset: torch.Tensor,
+        target: torch.Tensor,
+        iterations: int,
+        saccade_numbers: int = 1,
+        shuffle: bool = True,
+    ):
+        if not self.transformation:
+            self.transformation = torchvision.transforms.Compose(
+                [
+                    torchvision.transforms.ToTensor(),
+                    torchvision.transforms.Grayscale(num_output_channels = 1), # not necessary
+                    Conv2dFilter(DoGFilter(size = 5, sigma_1 = 4, sigma_2 = 1, zero_mean=True, one_sum=True).unsqueeze(0).unsqueeze(0)), # type: ignore
+                    SqueezeTransform(dim = 0), # type: ignore
+                ]
+            )
         
-            
+        ### data prepration
+        t = torch.arange(target.shape[0])
+        
+        if shuffle:
+            np.random.shuffle(t)
+            dataset = dataset[t]
+            target = target[t]
+        
+        new_dataset = torch.empty(0, INPUT_HEIGHT, INPUT_WIDTH)
+        
+        for i in range(0, dataset.shape[0]):
+            img = dataset[i]  # 4 in range [0, 5842) ; 9 in range [5842, 11791)
+            img = Image.fromarray(img.numpy(), mode="L")
+            img = self.transformation(img)
+            new_dataset = torch.cat((new_dataset.data, img.data.view(1, *img.data.shape)), dim=0)
 
-# net.initialize()
-# net.simulate_iterations(3000)
+        if not self.net.behavior.get(5):
+            self.net.add_behavior(5, behavior=SetTarget(target = target))
+        
+        dl = DataLoader(new_dataset,shuffle=False)
+        
+        ### inject data to cc
+        input_layer = DataLoaderLayer(
+            net=self.net,
+            data_loader=dl,
+            widnow_size=INPUT_HEIGHT,
+            saccades_on_each_image=saccade_numbers,
+            rest_interval=10,
+            iterations=iterations
+        ).build_data_loader()
+
+        ### Missing Synapsis between a Layer and CoricalLayer
+        
+        Synapsis_Inp_L4 = Synapsis(
+            net = self.net,
+            src = input_layer,
+            dst = self.L4,
+            input_port="data_out",
+            output_port="input",
+            behavior=prioritize_behaviors([
+                SynapseInit(),
+                WeightInitializer(weights = torch.normal(0.1, 2, (OUT_CHANNEL, IN_CHANNEL, KERNEL_HEIGHT, KERNEL_WIDTH)) ),
+                Conv2dDendriticInput(current_coef = 20000 , stride = 1, padding = 0),
+                Conv2dSTDP(a_plus=0.3, a_minus=0.0008),
+                WeightNormalization(norm = 4)
+            ]),
+            tag="Proximal"
+        )
+
+        Synapsis_Inp_L56 = Synapsis(
+            net = self.net,
+            src = input_layer,
+            dst = self.L56,
+            input_port = "data_out",
+            output_port = "input",
+            behavior=prioritize_behaviors([
+                SynapseInit(),]) | {
+                275: LocationCoder()
+            },
+            tag="Proximal"
+        )
+        return Synapsis_Inp_L4, Synapsis_Inp_L56

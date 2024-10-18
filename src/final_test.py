@@ -64,7 +64,7 @@ L23_HEIGHT = L4_HEIGHT//2
 J_0 = 300
 p = 0.8
 
-iterations = 1
+iterations = 10000
 
 #######################################################
 ###################### DataLoader #####################
@@ -114,9 +114,9 @@ dl = DataLoader(new_dataset,shuffle=False)
 
 
 
-#######################################################
-####################### Network #######################
-#######################################################
+######################################################
+###################### Network #######################
+######################################################
 
 
 
@@ -201,12 +201,15 @@ Synapsis_Inp_L56 = Synapsis(
     synaptic_tag="Proximal"
 )
 
-cc = NeoCorticalColumn()
+# cc = NeoCorticalColumn()
+# inp_to_L4, inp_to_l56 = cc.inject_input(dataset=two_class_dataset, target=target, iterations=iterations)
+
 
 net.initialize()
 net.simulate_iterations(iterations)
 
-to_test_1 = two_class_dataset[target == 0][0][10:20, 5:15]
-to_test_2 = two_class_dataset[target == 0][1][10:20, 5:15]
+
+# to_test_1 = two_class_dataset[target == 0][0][10:20, 5:15]
+# to_test_2 = two_class_dataset[target == 0][1][10:20, 5:15]
 
 show_filters(Synapsis_Inp_L4.synapses[0].weights)
