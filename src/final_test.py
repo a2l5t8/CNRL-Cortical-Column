@@ -37,8 +37,8 @@ from src.Cortical_Column import NeoCorticalColumn
 
 Input_Width = 28
 Input_Height = 28
-Crop_Window_Width = 21
-Crop_Window_Height = 21
+Crop_Window_Width = 23
+Crop_Window_Height = 23
 DoG_SIZE = 5
 
 IMAGE_WIDTH = 28
@@ -50,13 +50,13 @@ IN_CHANNEL = 1
 KERNEL_WIDTH = 13
 KERNEL_HEIGHT = 13
 
-INPUT_WIDTH = IMAGE_WIDTH - DoG_SIZE + 1
-INPUT_HEIGHT = IMAGE_HEIGHT - DoG_SIZE + 1
-# INPUT_WIDTH = Crop_Window_Width - DoG_SIZE + 1
-# INPUT_HEIGHT = Crop_Window_Height - DoG_SIZE + 1
+DATASET_IMAGE_WIDTH = IMAGE_WIDTH - DoG_SIZE + 1
+DATASET_IMAGE_HEIGHT = IMAGE_HEIGHT - DoG_SIZE + 1
+INPUT_WIDTH = Crop_Window_Width - DoG_SIZE + 1
+INPUT_HEIGHT = Crop_Window_Height - DoG_SIZE + 1
 
-L4_WIDTH = INPUT_WIDTH - KERNEL_WIDTH + 1
-L4_HEIGHT = INPUT_HEIGHT - KERNEL_HEIGHT + 1
+L4_WIDTH = Crop_Window_Width - KERNEL_WIDTH + 1
+L4_HEIGHT = Crop_Window_Height - KERNEL_HEIGHT + 1
 
 L23_WIDTH = L4_WIDTH//2
 L23_HEIGHT = L4_HEIGHT//2
@@ -101,13 +101,14 @@ np.random.shuffle(t.numpy())
 two_class_dataset = two_class_dataset[t]
 target = target[t]
 
-new_dataset = torch.empty(0, INPUT_HEIGHT, INPUT_WIDTH)
+new_dataset = torch.empty(0, DATASET_IMAGE_WIDTH, DATASET_IMAGE_WIDTH)
 centers = []
 
 for i in range(0, new_dataset_size):
     img = two_class_dataset[i]  # 4 in range [0, 5842) ; 9 in range [5842, 11791)
     img = Image.fromarray(img.numpy(), mode="L")
     img = transformation(img)
+    # import pdb;pdb.set_trace()
     new_dataset = torch.cat((new_dataset.data, img.data.view(1, *img.data.shape)), dim=0)
 
 dl = DataLoader(new_dataset,shuffle=False)
@@ -134,7 +135,7 @@ net = Neocortex(dt=1, index=True, dtype=torch.float32, behavior = prioritize_beh
 input_layer = DataLoaderLayer(
     net=net,
     data_loader=dl,
-    widnow_size=INPUT_HEIGHT,
+    widnow_size=Crop_Window_Height,
     saccades_on_each_image=7,
     rest_interval=10,
     iterations=iterations
@@ -170,7 +171,6 @@ Synapsis_L4_L23 = Synapsis(
 )
 
 
-
 Synapsis_Inp_L4 = Synapsis(
     net = net,
     src = input_layer,
@@ -181,7 +181,7 @@ Synapsis_Inp_L4 = Synapsis(
         SynapseInit(),
         WeightInitializer(weights = torch.normal(0.1, 2, (OUT_CHANNEL, IN_CHANNEL, KERNEL_HEIGHT, KERNEL_WIDTH)) ),
         Conv2dDendriticInput(current_coef = 20000 , stride = 1, padding = 0),
-        Conv2dSTDP(a_plus=0.3, a_minus=0.0008),
+        Conv2dSTDP(a_plus=0.8, a_minus=0.001),
         WeightNormalization(norm = 4)
     ]),
     synaptic_tag="Proximal"
@@ -208,8 +208,15 @@ Synapsis_Inp_L56 = Synapsis(
 net.initialize()
 net.simulate_iterations(iterations)
 
+#######################################################
+####################### Testings ######################
+#######################################################
 
-# to_test_1 = two_class_dataset[target == 0][0][10:20, 5:15]
-# to_test_2 = two_class_dataset[target == 0][1][10:20, 5:15]
+fours = dl.dataset[target == 0]
+
+to_test_1 = fours[1][1:11, 10:20]
+to_test_2 = fours[2][1:11, 10:20]
+
+# import pdb;pdb.set_trace()
 
 show_filters(Synapsis_Inp_L4.synapses[0].weights)

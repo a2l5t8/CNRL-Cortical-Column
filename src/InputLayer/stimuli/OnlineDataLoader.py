@@ -22,11 +22,11 @@ def confidence_crop_interspace(image: torch.Tensor, window_width: int, window_he
     x2 = (inp_width - 1) - (window_width//2)
     y1 = window_height//2 
     y2 = (inp_height - 1) - (window_height//2)
-
-    # import pdb;pdb.set_trace()
-
-    center_x = random.randint(x2, x1)
-    center_y = random.randint(y2, y1)
+    
+    # import pdb;pdb.set_trace() 
+    
+    center_x = random.randint(x1, x2)
+    center_y = random.randint(y1, y2)
     center_coordinates = [center_x, center_y]
     top_left_x = center_x - (window_width//2)
     top_left_y = center_y - (window_height//2)
@@ -79,7 +79,6 @@ class OnlineDataLoader(pynt.Behavior):
         image_idx =  neuron.network.iteration // self.interval
         neuron.network.targets = neuron.network.network_target[image_idx]
         if image_idx < self.data_set.size(0) and neuron.network.iteration % (self.interval // self.batch_number) == 0:
-            # self.saccade_infos = hypo_func(self.data_set[image_idx])
             self.saccade_infos = confidence_crop_interspace(self.data_set[image_idx], window_height=self.window_size, window_width=self.window_size)
         neuron.focus_loc = self.saccade_infos[0][0]
         if self.interval - self.rest_interval > neuron.network.iteration - image_idx * self.interval:

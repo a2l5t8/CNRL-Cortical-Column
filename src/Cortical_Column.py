@@ -233,6 +233,7 @@ class NeoCorticalColumn():
             net=self.net,
             data_loader=dl,
             widnow_size=INPUT_HEIGHT,
+            saccade_sizes = Crop_Window_Height,
             saccades_on_each_image=saccade_numbers,
             rest_interval=10,
             iterations=iterations
