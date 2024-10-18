@@ -27,6 +27,7 @@ from src.L423.L423 import L4, L23
 from src.InputLayer.DataLoaderLayer import DataLoaderLayer
 from src.L56.RefrenceFrames import RefrenceFrame
 from src.InputLayer.synapse.LocationCoder import LocationCoder
+from src.Cortical_Column import NeoCorticalColumn
 
 
 #######################################################
@@ -63,7 +64,7 @@ L23_HEIGHT = L4_HEIGHT//2
 J_0 = 300
 p = 0.8
 
-iterations = 20000
+iterations = 1
 
 #######################################################
 ###################### DataLoader #####################
@@ -119,7 +120,7 @@ dl = DataLoader(new_dataset,shuffle=False)
 
 
 
-net = Neocortex(dt=1, dtype=torch.float32, behavior = prioritize_behaviors(
+net = Neocortex(dt=1, index=True, dtype=torch.float32, behavior = prioritize_behaviors(
     [
         Payoff(initial_payoff = 1),
         Dopamine(tau_dopamine = 5),
@@ -149,7 +150,7 @@ L56 = RefrenceFrame(
 L4 = L4(net = net, IN_CHANNEL = IN_CHANNEL, OUT_CHANNEL = OUT_CHANNEL, HEIGHT = L4_HEIGHT, WIDTH = L4_WIDTH, INH_SIZE = 7)
 L23 = L23(net = net, IN_CHANNEL = IN_CHANNEL, OUT_CHANNEL = OUT_CHANNEL, HEIGHT = L23_HEIGHT, WIDTH = L23_WIDTH)
 input_layer = input_layer.build_data_loader()
-L56 = L56.build_layer()
+L56_layer = L56.layer
 
 #######################################################
 ####################### Connections ###################
@@ -190,7 +191,7 @@ Synapsis_Inp_L4 = Synapsis(
 Synapsis_Inp_L56 = Synapsis(
     net = net,
     src = input_layer,
-    dst = L56,
+    dst = L56_layer,
     input_port = "data_out",
     output_port = "input",
     synapsis_behavior=prioritize_behaviors([
@@ -200,8 +201,12 @@ Synapsis_Inp_L56 = Synapsis(
     synaptic_tag="Proximal"
 )
 
+cc = NeoCorticalColumn()
+
 net.initialize()
 net.simulate_iterations(iterations)
 
+to_test_1 = two_class_dataset[target == 0][0][10:20, 5:15]
+to_test_2 = two_class_dataset[target == 0][1][10:20, 5:15]
 
 show_filters(Synapsis_Inp_L4.synapses[0].weights)

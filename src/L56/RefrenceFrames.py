@@ -2,7 +2,8 @@ import torch
 
 import conex as cnx
 
-from pymonntorch import Recorder, EventRecorder, NeuronGroup, NeuronDimension, SynapseGroup
+# from pymonntorch import Recorder, EventRecorder, NeuronGroup, NeuronDimension, SynapseGroup
+from pymonntorch import *
 
 from .synapse.GPCell_lateral_inhibition import GPCellLateralInhibition
 from .tools.rat_simulation import speed_vector_converter, generate_walk
@@ -40,6 +41,7 @@ class RefrenceFrame():
             self.add_lateral_inhibition()
         # self.add_input_neuron()
         self.layer = self.build_layer()
+        # import pdb;pdb.set_trace()
     
     def add_input_neuron(self):
         ng = cnx.NeuronGroup(
@@ -61,7 +63,7 @@ class RefrenceFrame():
     def add_refrence_frame(self, id: int):
         ng = cnx.NeuronGroup(
                 net=self.net,
-                size=cnx.NeuronDimension(width=self.side, height=self.side),
+                size=NeuronDimension(width=self.side, height=self.side),
                 tag=f"RefrenceFrame,{id}",
                 behavior=cnx.prioritize_behaviors(
                     [
@@ -78,7 +80,7 @@ class RefrenceFrame():
                         260: GPCell(
                             R=8,
                             tau=5,
-                            threshold=-30,
+                            threshold=-40,
                             v_rest=-65,
                             v_reset=-67,
                             L=10,
@@ -207,7 +209,10 @@ class RefrenceFrame():
             tag="layer_5_6",
             input_ports= {"input": (None, list(map(lambda x: cnx.Port(object = x, label = None), self.refrences)))}
         )
-
+        
+    def cosine_similarity_test(self, first_feature: torch.Tensor, second_feature: torch.Tensor):
+        import pdb;pdb.set_trace()
+    
 
 
 
