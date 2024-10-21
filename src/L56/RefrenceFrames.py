@@ -10,6 +10,7 @@ from L56.tools.rat_simulation import speed_vector_converter, generate_walk
 from L56.stimuli.current_base import ConstantCurrent
 from L56.neuron.GPCell import GPCell
 from L56.synapse.vDistributor import vDistributor
+from L56.spec.layerKWTA import LayerKWTA
 
 class RefrenceFrame():
     """
@@ -23,6 +24,7 @@ class RefrenceFrame():
         inhibitory_size: int,
         lateral_inhibition: bool = True,
         competize: bool = True,
+        k_winner_between_all: bool = True,
         net: cnx.Neocortex = None
     ) -> None:
         self.net = net
@@ -31,6 +33,7 @@ class RefrenceFrame():
         self.k = k
         self.side = refrence_frame_side
         self.inh_side = inhibitory_size
+        self.k_winner_between_all = k_winner_between_all
         self.neuron_groups = []
         self.refrences = []
         self.synapse_groupes = []
@@ -39,9 +42,7 @@ class RefrenceFrame():
             self.add_competition()
         if lateral_inhibition:
             self.add_lateral_inhibition()
-        # self.add_input_neuron()
         self.layer = self.build_layer()
-        # import pdb;pdb.set_trace()
     
     def add_input_neuron(self):
         ng = cnx.NeuronGroup(
@@ -202,13 +203,16 @@ class RefrenceFrame():
             self.synapse_groupes.append(syn_group)
     
     def build_layer(self):
-        return cnx.Layer(
+        layer = cnx.Layer(
             net=self.net,
             neurongroups=self.neuron_groups,
             synapsegroups=self.synapse_groupes,
             tag="layer_5_6",
             input_ports= {"input": (None, list(map(lambda x: cnx.Port(object = x, label = None), self.refrences)))}
         )
+        if self.k_winner_between_all:
+            layer.add_behavior(300, LayerKWTA(k=10, group="RefrenceFrame"), initialize=False)
+        return layer
         
     def cosine_similarity_test(self, first_feature: torch.Tensor, second_feature: torch.Tensor):
         import pdb;pdb.set_trace()
