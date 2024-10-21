@@ -49,6 +49,7 @@ class GPCell(LIF):
         neurons.spike_prev = neurons.vector("zeros") < 0
 
     def forward(self, neurons):
+        print(neurons._v)
         newPosX = (
             neurons.x[neurons.spike_prev]
             + (self.shape[1] - 1) / 2

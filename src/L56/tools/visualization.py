@@ -1,6 +1,30 @@
 import torch
 import matplotlib.pyplot as plt
 
+def refrence_frame_raster(
+    refrence_frame,
+    lib,
+    last_itr = None,
+    step = None,
+):
+    left_x = refrence_frame.x[0]
+    right_x = refrence_frame.x[-1]
+    down_y = refrence_frame.y[0]
+    up_y = refrence_frame.y[-1]
+    plt.xlim(left_x, right_x)
+    plt.ylim(down_y, up_y)
+    
+    
+    itr_spikes = refrence_frame["spikes", 0]
+    for itr in range(last_itr):
+        plt.title(f"raster for itr: {itr}")
+        raster_data = itr_spikes[itr_spikes[:, 0] == itr][:, 1]
+        x_events = refrence_frame.x[raster_data] 
+        y_events = refrence_frame.y[raster_data]
+        plt.scatter(x_events, y_events)
+        plt.savefig("{}/fig{}.png".format(lib, itr))
+        plt.close()
+        
 
 def iter_spike_multi_real(
     locs,

@@ -1,7 +1,7 @@
 from pymonntorch import *
 from conex import *
 
-from src.InputLayer.stimuli.OnlineDataLoader import OnlineDataLoader
+from InputLayer.stimuli.OnlineDataLoader import OnlineDataLoader
 
 class DataLoaderLayer():
     def __init__(

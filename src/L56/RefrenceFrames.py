@@ -5,11 +5,11 @@ import conex as cnx
 # from pymonntorch import Recorder, EventRecorder, NeuronGroup, NeuronDimension, SynapseGroup
 from pymonntorch import *
 
-from .synapse.GPCell_lateral_inhibition import GPCellLateralInhibition
-from .tools.rat_simulation import speed_vector_converter, generate_walk
-from .stimuli.current_base import ConstantCurrent
-from .neuron.GPCell import GPCell
-from .synapse.vDistributor import vDistributor
+from L56.synapse.GPCell_lateral_inhibition import GPCellLateralInhibition
+from L56.tools.rat_simulation import speed_vector_converter, generate_walk
+from L56.stimuli.current_base import ConstantCurrent
+from L56.neuron.GPCell import GPCell
+from L56.synapse.vDistributor import vDistributor
 
 class RefrenceFrame():
     """
@@ -70,13 +70,13 @@ class RefrenceFrame():
                         cnx.SimpleDendriteStructure(),
                         cnx.SimpleDendriteComputation(apical_provocativeness=0.9),
                         cnx.Fire(),
-                        cnx.KWTA(k=10),
+                        # cnx.KWTA(k=10),
                         cnx.NeuronAxon(),
                     ]
                 )
                 | (
                     {
-                        250: ConstantCurrent(scale=4),
+                        250: ConstantCurrent(scale=10),
                         260: GPCell(
                             R=8,
                             tau=5,
@@ -124,7 +124,7 @@ class RefrenceFrame():
                     dst=neuron_group,
                     behavior=cnx.prioritize_behaviors(
                         [
-                            cnx.SynapseInit(), cnx.SimpleDendriticInput(), cnx.WeightInitializer(mode="normal(1.5, 0.5)")
+                            cnx.SynapseInit(), cnx.SimpleDendriticInput(), cnx.WeightInitializer(mode="normal(1, 0.5)")
                         ]
                     )
                 )
@@ -137,7 +137,7 @@ class RefrenceFrame():
                 dst=neuron_group,
                 behavior=cnx.prioritize_behaviors(
                     [
-                        cnx.SynapseInit(), cnx.SimpleDendriticInput(), cnx.WeightInitializer(mode="normal(1.5, 0.5)")
+                        cnx.SynapseInit(), cnx.SimpleDendriticInput(), cnx.WeightInitializer(mode="normal(1, 0.5)")
                     ]
                 )
             )
@@ -149,7 +149,7 @@ class RefrenceFrame():
                 dst=inhibitory,
                 behavior=cnx.prioritize_behaviors(
                     [
-                        cnx.SynapseInit(), cnx.SimpleDendriticInput(), cnx.WeightInitializer(mode="normal(1.5, 0.5)")
+                        cnx.SynapseInit(), cnx.SimpleDendriticInput(), cnx.WeightInitializer(mode="normal(1, 0.5)")
                     ]
                 )
             )

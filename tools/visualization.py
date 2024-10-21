@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import torch
 
-
 def iter_spike_multi_real(
     pos_x,
     pos_y,
@@ -137,3 +136,13 @@ def iter_spike_multi(
 
     if save:
         plt.savefig("{}/fig{}.png".format(lib, itr))
+
+
+def refrence_frame_raster(
+    refrence_frame,
+    last_itr: None,
+    step: None,
+):
+    print("hello")
+    
+    
