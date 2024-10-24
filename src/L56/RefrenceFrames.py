@@ -7,7 +7,7 @@ from pymonntorch import *
 
 from L56.synapse.GPCell_lateral_inhibition import GPCellLateralInhibition
 from L56.tools.rat_simulation import speed_vector_converter, generate_walk
-from L56.stimuli.current_base import ConstantCurrent
+from L56.stimuli.current_base import ConstantCurrent, PunishModulatorCurrent
 from L56.neuron.GPCell import GPCell
 from L56.synapse.vDistributor import vDistributor
 from L56.spec.layerKWTA import LayerKWTA
@@ -86,7 +86,7 @@ class RefrenceFrame():
                             v_rest=-65,
                             v_reset=-67,
                             L=15,
-                            I_amp = 20,
+                            I_amp = 12,
                             init_v=torch.tensor([-67]).expand(self.side * self.side).clone().to(dtype=torch.float32)
                         ),
                         600: Recorder(["I", "v"]),
@@ -212,7 +212,10 @@ class RefrenceFrame():
             input_ports= {
                 "input" : 
                     (None, [cnx.Port(object = reference, label = None) for reference in self.refrences])
-                }
+                },
+            behavior={
+                255 : PunishModulatorCurrent(group="RefrenceFrame", base_line=20, punish=-10, decay_tau=5),
+            }
         )
         if self.k_winner_between_all:
             layer.add_behavior(300, LayerKWTA(k=25, group="RefrenceFrame"), initialize=False)

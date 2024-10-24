@@ -45,3 +45,35 @@ class ConstantCurrent(pynt.Behavior):
     def forward(self, neurons):
         neurons.I += (self.scale * 1)
         return super().forward(neurons)
+    
+
+class PunishModulatorCurrent(pynt.Behavior):
+    def __init__(
+        self,
+        group: str,
+        base_line: float,
+        punish: float, 
+        decay_tau: float, 
+        *args, 
+        **kwargs
+    ):
+        super().__init__(group=group,base_line=base_line,punish=punish,decay_tau=decay_tau,*args, **kwargs)
+    
+    def initialize(self, layer):
+        self.group = self.parameter("group", required=True)
+        self.base_line = self.parameter("base_line", required=True)
+        self.punish = self.parameter("punish", required=True)
+        self.decay_tau = self.parameter("decay_tau", required=True)
+        self.ngs = []
+        for ng in layer.neurongroups:
+            if self.group in ng.tags:
+                self.ngs.append(ng)
+        return super().initialize(layer)
+    
+    def forward(self, layer):
+        spikes = torch.Tensor([torch.sum(ng.spikes, dim=0) for ng in self.ngs])
+        winner = torch.argmax(spikes)
+        has_winner = torch.max(spikes) != torch.min(spikes)
+        for ind, ng in enumerate(self.ngs):
+            ng.I += (self.base_line - ng.I)/self.decay_tau + self.punish * (ind != winner) * has_winner
+        return super().forward(layer)
