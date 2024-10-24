@@ -10,7 +10,7 @@ class LocationCoder(pynt.Behavior):
         super().__init__(*args, **kwargs)
 
     def initialize(self, synapse):
-        self.last_position = synapse.src.focus_loc
+        synapse.dst.last_position = synapse.src.focus_loc
         synapse.dst._v = torch.tensor([0, 0])
         synapse.I = synapse.matrix().view(-1)
         return super().initialize(synapse)
@@ -19,7 +19,8 @@ class LocationCoder(pynt.Behavior):
         return (synapse.src.focus_loc[0] == self.last_position[0] and synapse.src.focus_loc[1] == self.last_position[1])
 
     def forward(self, synapse):
-        synapse.dst._v[0] = synapse.src.focus_loc[0] - self.last_position[0]
-        synapse.dst._v[1] = synapse.src.focus_loc[1] - self.last_position[1]
-        self.last_position = synapse.src.focus_loc
+        synapse.dst._v[0] = synapse.src.focus_loc[0] - synapse.dst.last_position[0]
+        synapse.dst._v[1] = synapse.src.focus_loc[1] - synapse.dst.last_position[1]
+        synapse.dst.last_position = synapse.src.focus_loc
+        # print("-->",synapse.network.iteration, ":",synapse.tags, synapse.dst.tags, synapse.dst._v, self.last_position)
         return super().forward(synapse)

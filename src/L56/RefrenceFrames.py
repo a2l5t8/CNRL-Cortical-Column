@@ -72,6 +72,7 @@ class RefrenceFrame():
                         cnx.SimpleDendriteComputation(apical_provocativeness=0.9),
                         cnx.Fire(),
                         # cnx.KWTA(k=10),
+                        cnx.SpikeTrace(tau_s = 5, offset = 0),
                         cnx.NeuronAxon(),
                     ]
                 )
@@ -84,7 +85,7 @@ class RefrenceFrame():
                             threshold=-40,
                             v_rest=-65,
                             v_reset=-67,
-                            L=10,
+                            L=15,
                             I_amp = 20,
                             init_v=torch.tensor([-67]).expand(self.side * self.side).clone().to(dtype=torch.float32)
                         ),
@@ -208,10 +209,13 @@ class RefrenceFrame():
             neurongroups=self.neuron_groups,
             synapsegroups=self.synapse_groupes,
             tag="layer_5_6",
-            input_ports= {"input": (None, list(map(lambda x: cnx.Port(object = x, label = None), self.refrences)))}
+            input_ports= {
+                "input" : 
+                    (None, [cnx.Port(object = reference, label = None) for reference in self.refrences])
+                }
         )
         if self.k_winner_between_all:
-            layer.add_behavior(300, LayerKWTA(k=10, group="RefrenceFrame"), initialize=False)
+            layer.add_behavior(300, LayerKWTA(k=25, group="RefrenceFrame"), initialize=False)
         return layer
         
     def cosine_similarity_test(self, first_feature: torch.Tensor, second_feature: torch.Tensor):

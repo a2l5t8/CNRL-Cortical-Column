@@ -12,19 +12,25 @@ class RandomInputCurrent(pynt.Behavior):
     """
 
     def __init__(
-        self, prob_to_spike: float = 0.5, T: int | None = None, *args, **kwargs
+        self, k: int, prob_to_spike: float = 0.5, intensity: float = 0.8, T: int | None = None, *args, **kwargs
     ):
-        super().__init__(prob_to_spike=prob_to_spike, T=T, *args, **kwargs)
+        super().__init__(k=k, prob_to_spike=prob_to_spike, intensity=intensity, T=T, *args, **kwargs)
 
     def initialize(self, neurons):
+        self.k = self.parameter("k", required=True)
+        self.intensity = self.parameter("intensity", default=0.8)
         self.prob = self.parameter("prob_to_spike", required=False, default=0.5)
         self.T = self.parameter("T", required=False, default=float("inf"))
+        
+        self.patterns = [torch.rand(neurons.size) < self.prob for i in range(self.k)]
+        
         return super().initialize(neurons)
 
     def forward(self, neurons):
         neurons.spikes = neurons.vector(0)
-        if neurons.network.iteration < self.T:
-            neurons.spikes = torch.rand(neurons.size) < self.prob
+        idx = neurons.network.iteration // self.T
+        if neurons.network.iteration < self.T * self.k:
+            neurons.spikes = torch.logical_and(torch.rand(neurons.size) < self.intensity, self.patterns[idx])
         return super().forward(neurons)
 
 
