@@ -19,6 +19,10 @@ class LocationCoder(pynt.Behavior):
         return (synapse.src.focus_loc[0] == self.last_position[0] and synapse.src.focus_loc[1] == self.last_position[1])
 
     def forward(self, synapse):
+        if synapse.src.focus_loc[0] == -1:
+            synapse.dst._v = torch.tensor([torch.nan, torch.nan])
+            return super().forward(synapse)
+    
         synapse.dst._v[0] = synapse.src.focus_loc[0] - synapse.dst.last_position[0]
         synapse.dst._v[1] = synapse.src.focus_loc[1] - synapse.dst.last_position[1]
         synapse.dst.last_position = synapse.src.focus_loc

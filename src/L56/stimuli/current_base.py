@@ -12,12 +12,20 @@ class RandomInputCurrent(pynt.Behavior):
     """
 
     def __init__(
-        self, k: int, prob_to_spike: float = 0.5, intensity: float = 0.8, T: int | None = None, *args, **kwargs
+        self, 
+        k: int,
+        rest_interval: int,    
+        prob_to_spike: float = 0.5, 
+        intensity: float = 0.8, 
+        T: int | None = None, 
+        *args, 
+        **kwargs
     ):
-        super().__init__(k=k, prob_to_spike=prob_to_spike, intensity=intensity, T=T, *args, **kwargs)
+        super().__init__(k=k, rest_interval=rest_interval, prob_to_spike=prob_to_spike, intensity=intensity, T=T, *args, **kwargs)
 
     def initialize(self, neurons):
         self.k = self.parameter("k", required=True)
+        self.rest_interval = self.parameter("rest_interval", required=True)
         self.intensity = self.parameter("intensity", default=0.8)
         self.prob = self.parameter("prob_to_spike", required=False, default=0.5)
         self.T = self.parameter("T", required=False, default=float("inf"))
@@ -31,7 +39,12 @@ class RandomInputCurrent(pynt.Behavior):
         idx = neurons.network.iteration // self.T
         if neurons.network.iteration < self.T * self.k:
             neurons.spikes = torch.logical_and(torch.rand(neurons.size) < self.intensity, self.patterns[idx])
+        elif neurons.network.iteration <= self.T * self.k + self.rest_interval: 
+            neurons.spikes = neurons.vector()
+        else:
+            neurons.spikes = torch.logical_and(torch.rand(neurons.size) < self.intensity, self.patterns[0])
         return super().forward(neurons)
+        
 
 
 class ConstantCurrent(pynt.Behavior):

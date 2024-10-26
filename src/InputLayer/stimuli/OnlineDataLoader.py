@@ -71,14 +71,19 @@ class OnlineDataLoader(pynt.Behavior):
         self.window_size = self.parameter("window_size", required=True)
         self.poisson_coder = SimplePoisson(time_window=1, ratio=self.ratio)
         self.saccade_infos = confidence_crop_interspace(self.data_set[0], window_height=self.window_size, window_width=self.window_size)
-        self.interval = self.iterations // self.data_set.size(0) + self.rest_interval
+        self.interval = self.iterations // self.data_set.size(0)
         neuron.focus_loc = self.saccade_infos[0][0]
         return super().initialize(neuron)
 
     def forward(self, neuron):
         image_idx =  neuron.network.iteration // self.interval
+        if(image_idx >= self.data_set.size(0)) : 
+            return super().forward(neuron)
         neuron.network.targets = neuron.network.network_target[image_idx]
-        if image_idx < self.data_set.size(0) and neuron.network.iteration % (self.interval // self.batch_number) == 0:
+        if neuron.network.iteration % self.interval >= self.interval - self.rest_interval:
+            neuron.focus_loc = torch.tensor([-1, -1])
+            return super().forward(neuron)
+        if image_idx < self.data_set.size(0) and neuron.network.iteration % ((self.interval - self.rest_interval) // self.batch_number) == 0:
             self.saccade_infos = confidence_crop_interspace(self.data_set[image_idx], window_height=self.window_size, window_width=self.window_size)
         neuron.focus_loc = self.saccade_infos[0][0]
         if self.interval - self.rest_interval > neuron.network.iteration - image_idx * self.interval:

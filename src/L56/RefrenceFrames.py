@@ -9,7 +9,6 @@ from L56.synapse.GPCell_lateral_inhibition import GPCellLateralInhibition
 from L56.tools.rat_simulation import speed_vector_converter, generate_walk
 from L56.stimuli.current_base import ConstantCurrent, PunishModulatorCurrent
 from L56.neuron.GPCell import GPCell
-from L56.synapse.vDistributor import vDistributor
 from L56.spec.layerKWTA import LayerKWTA
 
 class RefrenceFrame():
@@ -69,16 +68,16 @@ class RefrenceFrame():
                 behavior=cnx.prioritize_behaviors(
                     [
                         cnx.SimpleDendriteStructure(),
-                        cnx.SimpleDendriteComputation(apical_provocativeness=0.9),
+                        cnx.SimpleDendriteComputation(apical_provocativeness=0.99),
                         cnx.Fire(),
                         # cnx.KWTA(k=10),
-                        cnx.SpikeTrace(tau_s = 5, offset = 0),
+                        cnx.SpikeTrace(tau_s = 20, offset = 0),
                         cnx.NeuronAxon(),
                     ]
                 )
                 | (
                     {
-                        250: ConstantCurrent(scale=10),
+                        250: ConstantCurrent(scale=6),
                         260: GPCell(
                             R=8,
                             tau=5,
@@ -86,7 +85,7 @@ class RefrenceFrame():
                             v_rest=-65,
                             v_reset=-67,
                             L=15,
-                            I_amp = 12,
+                            I_amp = 7,
                             init_v=torch.tensor([-67]).expand(self.side * self.side).clone().to(dtype=torch.float32)
                         ),
                         600: Recorder(["I", "v"]),
