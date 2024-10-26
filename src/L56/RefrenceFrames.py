@@ -77,7 +77,7 @@ class RefrenceFrame():
                 )
                 | (
                     {
-                        250: ConstantCurrent(scale=6),
+                        250: ConstantCurrent(scale=4),
                         260: GPCell(
                             R=8,
                             tau=5,
