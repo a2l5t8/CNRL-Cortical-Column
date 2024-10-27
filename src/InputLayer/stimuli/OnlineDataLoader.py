@@ -65,7 +65,7 @@ class OnlineDataLoader(pynt.Behavior):
     def initialize(self, neuron):
         self.data_set = self.parameter("data_set", required=True)
         self.batch_number = self.parameter("batch_number", required=True)
-        self.ratio = self.parameter("ratio", 1)
+        self.ratio = self.parameter("ratio", 2)
         self.iterations = self.parameter("iterations", required=True)
         self.rest_interval = self.parameter("rest_interval", 5)
         self.window_size = self.parameter("window_size", required=True)

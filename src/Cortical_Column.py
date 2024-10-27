@@ -18,15 +18,15 @@ from torch.utils.data import DataLoader
 
 from conex.helpers.filters import DoGFilter
 
-from src.L423.tools.visualize import *
+from L423.tools.visualize import *
 
-from src.FC import fullyConnected
-from src.FC.synapse.learning import AttentionBasedRSTDP
-from src.L423.network.SetTarget import *
-from src.L423.L423 import L4, L23, SensoryLayer
-from src.InputLayer.DataLoaderLayer import DataLoaderLayer
-from src.L56.RefrenceFrames import RefrenceFrame
-from src.InputLayer.synapse.LocationCoder import LocationCoder
+from FC import fullyConnected
+from FC.synapse.learning import AttentionBasedRSTDP
+from L423.network.SetTarget import *
+from L423.L423 import L4, L23, SensoryLayer
+from InputLayer.DataLoaderLayer import DataLoaderLayer
+from L56.RefrenceFrames import RefrenceFrame
+from InputLayer.synapse.LocationCoder import LocationCoder
 
 #######################################################
 ######################## Config #######################

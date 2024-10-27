@@ -2,7 +2,7 @@ from pymonntorch import *
 from conex import *
 import torch
 
-from src.FC.network.payoff import ConfidenceLevelPayOff
+from FC.network.payoff import ConfidenceLevelPayOff
 
 class FC() :
     """

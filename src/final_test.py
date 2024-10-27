@@ -18,16 +18,16 @@ from torch.utils.data import DataLoader
 
 from conex.helpers.filters import DoGFilter
 
-from src.L423.tools.visualize import *
+from L423.tools.visualize import *
 
-from src.FC import fullyConnected
-from src.FC.synapse.learning import AttentionBasedRSTDP
-from src.L423.network.SetTarget import *
-from src.L423.L423 import L4, L23
-from src.InputLayer.DataLoaderLayer import DataLoaderLayer
-from src.L56.RefrenceFrames import RefrenceFrame
-from src.InputLayer.synapse.LocationCoder import LocationCoder
-from src.Cortical_Column import NeoCorticalColumn
+from FC import fullyConnected
+from FC.synapse.learning import AttentionBasedRSTDP
+from L423.network.SetTarget import *
+from L423.L423 import L4, L23
+from InputLayer.DataLoaderLayer import DataLoaderLayer
+from L56.RefrenceFrames import RefrenceFrame
+from InputLayer.synapse.LocationCoder import LocationCoder
+from Cortical_Column import NeoCorticalColumn
 
 
 #######################################################
@@ -64,7 +64,7 @@ L23_HEIGHT = L4_HEIGHT//2
 J_0 = 300
 p = 0.8
 
-iterations = 10000
+iterations = 20000
 
 #######################################################
 ###################### DataLoader #####################
@@ -121,12 +121,7 @@ dl = DataLoader(new_dataset,shuffle=False)
 
 
 
-net = Neocortex(dt=1, index=True, dtype=torch.float32, behavior = prioritize_behaviors(
-    [
-        Payoff(initial_payoff = 1),
-        Dopamine(tau_dopamine = 5),
-    ]
-    ) | {5 : SetTarget(target = target), 601 : Recorder(["dopamine"])})
+net = Neocortex(dt=1, index=True, dtype=torch.float32, behavior = {5 : SetTarget(target = target), 601 : Recorder(["dopamine"])})
 
 #######################################################
 ####################### Network Layers ################
@@ -152,6 +147,7 @@ L4 = L4(net = net, IN_CHANNEL = IN_CHANNEL, OUT_CHANNEL = OUT_CHANNEL, HEIGHT = 
 L23 = L23(net = net, IN_CHANNEL = IN_CHANNEL, OUT_CHANNEL = OUT_CHANNEL, HEIGHT = L23_HEIGHT, WIDTH = L23_WIDTH)
 input_layer = input_layer.build_data_loader()
 L56_layer = L56.layer
+fclayer = fullyConnected.FC(net = net, N = 100, K = 2)
 
 #######################################################
 ####################### Connections ###################
@@ -201,6 +197,23 @@ Synapsis_Inp_L56 = Synapsis(
     synaptic_tag="Proximal"
 )
 
+Synapsis_L23_FC = Synapsis(
+    net = net,
+    src = L23.layer,
+    dst = fclayer.layer,
+    input_port="output",
+    output_port="input",
+    synapsis_behavior=prioritize_behaviors([
+        SynapseInit(),
+        WeightInitializer(mode = "random"),
+        SimpleDendriticInput(current_coef = 50),
+        WeightNormalization(norm = 13),
+    ]) | ({
+        400 : AttentionBasedRSTDP(a_plus = 0.8 , a_minus = 0.1, tau_c = 20, attention_plus = 1.5, attention_minus = -1),
+    }),
+    synaptic_tag="Proximal"
+)
+
 # cc = NeoCorticalColumn()
 # inp_to_L4, inp_to_l56 = cc.inject_input(dataset=two_class_dataset, target=target, iterations=iterations)
 
@@ -214,9 +227,13 @@ net.simulate_iterations(iterations)
 
 fours = dl.dataset[target == 0]
 
-to_test_1 = fours[1][1:11, 10:20]
-to_test_2 = fours[2][1:11, 10:20]
+# to_test_1 = fours[1][1:11, 10:20]
+# to_test_2 = fours[2][1:11, 10:20]
 
 # import pdb;pdb.set_trace()
 
 show_filters(Synapsis_Inp_L4.synapses[0].weights)
+
+plt.figure(figsize=(16, 6))
+plt.plot(net["dopamine", 0])
+plt.show()

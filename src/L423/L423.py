@@ -70,7 +70,9 @@ class L4() :
                 Fire(),
                 SpikeTrace(tau_s = 15),
                 NeuronAxon(),
-            ])
+            ]) | ({
+                601 : EventRecorder(["spikes"])
+            })
         )
 
         self.ng_i = NeuronGroup(
@@ -204,8 +206,7 @@ class L23() :
             OUT_CHANNEL (int) : depth of the neuron dimension after pooling.    
         """    
 
-        self.net = net,
-        self.net = self.net[0]
+        self.net = net
         self.config = {
             "HEIGHT" : HEIGHT,
             "WIDTH" : WIDTH,
@@ -242,7 +243,9 @@ class L23() :
                 Fire(),
                 SpikeTrace(tau_s = 15),
                 NeuronAxon(),
-            ])
+            ]) | ({
+                601 : EventRecorder(["spikes"])
+            })
         )
 
         self.ng_i = NeuronGroup(
