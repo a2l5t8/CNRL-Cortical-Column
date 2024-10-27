@@ -64,7 +64,9 @@ L23_HEIGHT = L4_HEIGHT//2
 J_0 = 300
 p = 0.8
 
-iterations = 20000
+train_iterations = 20000
+phase_interval = 20
+test_iterations = 5000
 
 #######################################################
 ###################### DataLoader #####################
@@ -87,6 +89,11 @@ transformation = torchvision.transforms.Compose([
 
 
 dataset = MNIST(root=MNIST_ROOT, train=True, download=False, transform=transformation)
+
+######################################################
+################# Data For Train #####################
+######################################################
+
 first_class = dataset.data[dataset.targets == 4][:40]
 second_class = dataset.data[dataset.targets == 9][:40]
 
@@ -114,6 +121,35 @@ for i in range(0, new_dataset_size):
 train_dl = DataLoader(new_dataset,shuffle=False)
 
 
+######################################################
+################### Data For Test ####################
+######################################################
+
+first_class = dataset.data[dataset.targets == 4][:10]
+second_class = dataset.data[dataset.targets == 9][:10]
+
+target = [0] * len(first_class) + [1] * len(second_class)
+target = torch.Tensor(target)
+
+two_class_dataset = torch.cat((first_class, second_class), dim=0)
+new_dataset_size = first_class.shape[0] + second_class.shape[0]
+
+t = torch.arange(new_dataset_size)
+np.random.shuffle(t.numpy())
+two_class_dataset = two_class_dataset[t]
+target = target[t]
+
+new_dataset = torch.empty(0, DATASET_IMAGE_WIDTH, DATASET_IMAGE_WIDTH)
+centers = []
+
+for i in range(0, new_dataset_size):
+    img = two_class_dataset[i]  # 4 in range [0, 5842) ; 9 in range [5842, 11791)
+    img = Image.fromarray(img.numpy(), mode="L")
+    img = transformation(img)
+    # import pdb;pdb.set_trace()
+    new_dataset = torch.cat((new_dataset.data, img.data.view(1, *img.data.shape)), dim=0)
+
+test_dl = DataLoader(new_dataset,shuffle=False)
 
 ######################################################
 ###################### Network #######################
@@ -129,11 +165,14 @@ net = Neocortex(dt=1, index=True, dtype=torch.float32, behavior = {5 : SetTarget
 
 input_layer = DataLoaderLayer(
     net=net,
-    data_loader=train_dl,
+    train_data_loader=train_dl,
+    test_data_loader=test_dl,
     widnow_size=Crop_Window_Height,
     saccades_on_each_image=7,
     rest_interval=10,
-    iterations=iterations
+    train_iterations=train_iterations,
+    test_iterations=test_iterations,
+    phase_iterations=phase_interval
 )
 
 L56 = RefrenceFrame(
@@ -253,11 +292,11 @@ L56_to_L23 = Synapsis(
 )
 
 # cc = NeoCorticalColumn()
-# inp_to_L4, inp_to_l56 = cc.inject_input(dataset=two_class_dataset, target=target, iterations=iterations)
+# inp_to_L4, inp_to_l56 = cc.inject_input(dataset=two_class_dataset, target=target, train_iterations=train_iterations)
 
 
 net.initialize()
-net.simulate_iterations(iterations)
+net.simulate_iterations(train_iterations)
 
 #######################################################
 ####################### Testings ######################
