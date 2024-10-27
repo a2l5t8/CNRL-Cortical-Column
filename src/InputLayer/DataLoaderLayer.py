@@ -18,7 +18,7 @@ class DataLoaderLayer():
     ):
         self.net = net
         self.train_dl = train_data_loader
-        self.test_dl = test_data_loader,
+        self.test_dl = test_data_loader
         self.window_size = widnow_size
         self.saccades_on_each_image = saccades_on_each_image
         self.train_iterations = train_iterations

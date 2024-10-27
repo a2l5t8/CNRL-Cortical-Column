@@ -128,8 +128,8 @@ train_dl = DataLoader(new_dataset,shuffle=False)
 first_class = dataset.data[dataset.targets == 4][:10]
 second_class = dataset.data[dataset.targets == 9][:10]
 
-target = [0] * len(first_class) + [1] * len(second_class)
-target = torch.Tensor(target)
+test_target = [0] * len(first_class) + [1] * len(second_class)
+test_target = torch.Tensor(test_target)
 
 two_class_dataset = torch.cat((first_class, second_class), dim=0)
 new_dataset_size = first_class.shape[0] + second_class.shape[0]
@@ -137,7 +137,7 @@ new_dataset_size = first_class.shape[0] + second_class.shape[0]
 t = torch.arange(new_dataset_size)
 np.random.shuffle(t.numpy())
 two_class_dataset = two_class_dataset[t]
-target = target[t]
+test_target = test_target[t]
 
 new_dataset = torch.empty(0, DATASET_IMAGE_WIDTH, DATASET_IMAGE_WIDTH)
 centers = []
@@ -149,7 +149,7 @@ for i in range(0, new_dataset_size):
     # import pdb;pdb.set_trace()
     new_dataset = torch.cat((new_dataset.data, img.data.view(1, *img.data.shape)), dim=0)
 
-test_dl = DataLoader(new_dataset,shuffle=False)
+test_dl = DataLoader(new_dataset, shuffle=False)
 
 ######################################################
 ###################### Network #######################
