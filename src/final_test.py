@@ -111,7 +111,7 @@ for i in range(0, new_dataset_size):
     # import pdb;pdb.set_trace()
     new_dataset = torch.cat((new_dataset.data, img.data.view(1, *img.data.shape)), dim=0)
 
-dl = DataLoader(new_dataset,shuffle=False)
+train_dl = DataLoader(new_dataset,shuffle=False)
 
 
 
@@ -129,7 +129,7 @@ net = Neocortex(dt=1, index=True, dtype=torch.float32, behavior = {5 : SetTarget
 
 input_layer = DataLoaderLayer(
     net=net,
-    data_loader=dl,
+    data_loader=train_dl,
     widnow_size=Crop_Window_Height,
     saccades_on_each_image=7,
     rest_interval=10,
@@ -214,6 +214,44 @@ Synapsis_L23_FC = Synapsis(
     synaptic_tag="Proximal"
 )
 
+#######################################################
+############## Connecting GPcells #####################
+#######################################################
+
+L23_to_L56 = Synapsis(
+    net=net,
+    src=L23,
+    dst=L56,
+    input_port="output",
+    output_port="input",
+    synaptic_tag="Apical, exi",
+    synapsis_behavior=prioritize_behaviors(
+        [
+            SynapseInit(), 
+            SimpleDendriticInput(),
+            WeightInitializer(mode="normal(0.05, 0.01)"),
+            SimpleSTDP(w_min=0, w_max=100, a_plus=1, a_minus=0.0008)
+        ]
+    )
+)
+
+L56_to_L23 = Synapsis(
+    net=net,
+    src=L56,
+    dst=L23,
+    input_port="output",
+    output_port="input",
+    synaptic_tag="Apical, exi",
+    synapsis_behavior=prioritize_behaviors(
+        [
+            SynapseInit(), 
+            SimpleDendriticInput(),
+            WeightInitializer(mode="normal(0.05, 0.01)"),
+            SimpleSTDP(w_min=0, w_max=10, a_plus=1, a_minus=0.0008)
+        ]
+    )
+)
+
 # cc = NeoCorticalColumn()
 # inp_to_L4, inp_to_l56 = cc.inject_input(dataset=two_class_dataset, target=target, iterations=iterations)
 
@@ -225,7 +263,7 @@ net.simulate_iterations(iterations)
 ####################### Testings ######################
 #######################################################
 
-fours = dl.dataset[target == 0]
+fours = train_dl.dataset[target == 0]
 
 # to_test_1 = fours[1][1:11, 10:20]
 # to_test_2 = fours[2][1:11, 10:20]
