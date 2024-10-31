@@ -45,6 +45,7 @@ class OnlineDataLoader(pynt.Behavior):
     """
     def __init__(self, 
         data_set: torch.Tensor,
+        targets: torch.Tensor,
         batch_number: int,
         train_images_number: int,
         test_images_number: int,
@@ -59,6 +60,7 @@ class OnlineDataLoader(pynt.Behavior):
     ):
         super().__init__(
             data_set = data_set, 
+            targets = targets,
             batch_number = batch_number, 
             train_iterations=train_iterations, 
             ratio=ratio, 
@@ -76,6 +78,7 @@ class OnlineDataLoader(pynt.Behavior):
         self.phase_interval = self.parameter("phase_interval", required=True)
         self.test_iterations = self.parameter("test_iterations", required=True)
         self.data_set = self.parameter("data_set", required=True)
+        self.targets = self.parameter("targets", required=True)
         self.batch_number = self.parameter("batch_number", required=True)
         self.ratio = self.parameter("ratio", 2)
         self.train_iterations = self.parameter("train_iterations", required=True)
@@ -92,6 +95,10 @@ class OnlineDataLoader(pynt.Behavior):
         if 0 < neuron.network.iteration - self.train_iterations and neuron.network.iteration - self.train_iterations <= self.phase_interval:
             return super().forward(neuron) 
         if neuron.network.iteration  > self.train_iterations + self.phase_interval:
+            try:
+                neuron.network.add_behavior(600, pynt.Recorder("targets"))
+            except:
+                pass
             itr = neuron.network.iteration - self.train_iterations - self.phase_interval
             image_idx = itr // self.test_interval + self.train_images_number  
             if(image_idx >= self.data_set.size(0)): 
@@ -104,6 +111,7 @@ class OnlineDataLoader(pynt.Behavior):
             neuron.focus_loc = self.saccade_infos[0][0]
             if self.test_interval - self.rest_interval > itr % self.test_interval:
                 spikes = self.poisson_coder(img=self.saccade_infos[1])
+                neuron.network.targets = neuron.network.network_target[image_idx]
                 neuron.v[spikes.view(-1)] = neuron.threshold + 1e-2
             return super().forward(neuron)
         image_idx =  neuron.network.iteration // self.train_interval

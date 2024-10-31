@@ -8,6 +8,7 @@ class DataLoaderLayer():
         self,
         net,
         data_loader,
+        targets,
         widnow_size,
         saccades_on_each_image,
         rest_interval,
@@ -19,6 +20,7 @@ class DataLoaderLayer():
     ):
         self.net = net
         self.dl = data_loader
+        self.targets = targets
         self.window_size = widnow_size
         self.saccades_on_each_image = saccades_on_each_image
         self.rest_interval = rest_interval
@@ -49,6 +51,7 @@ class DataLoaderLayer():
             ]) | {
                 270: OnlineDataLoader(
                     data_set=self.dl.dataset, 
+                    targets=self.targets,
                     window_size=self.window_size,
                     batch_number=self.saccades_on_each_image,
                     train_iterations=self.train_iterations,
