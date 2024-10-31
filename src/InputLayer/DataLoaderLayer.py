@@ -11,14 +11,22 @@ class DataLoaderLayer():
         widnow_size,
         saccades_on_each_image,
         rest_interval,
-        iterations,
+        train_iterations,
+        phase_interval,
+        train_images_number,
+        test_images_number ,
+        test_iterations
     ):
         self.net = net
         self.dl = data_loader
         self.window_size = widnow_size
         self.saccades_on_each_image = saccades_on_each_image
-        self.iterations = iterations
         self.rest_interval = rest_interval
+        self.train_iterations = train_iterations
+        self.phase_interval = phase_interval
+        self.train_images_number = train_images_number
+        self.test_images_number = test_images_number
+        self.test_iterations = test_iterations
         
     def build_data_loader(self):
         loader_neuron_group = NeuronGroup(
@@ -41,11 +49,14 @@ class DataLoaderLayer():
             ]) | {
                 270: OnlineDataLoader(
                     data_set=self.dl.dataset, 
-                    # data_set=torch.rand(5, widnow_size, widnow_size,),
                     window_size=self.window_size,
                     batch_number=self.saccades_on_each_image,
-                    iterations=self.iterations,
-                    rest_interval = self.rest_interval
+                    train_iterations=self.train_iterations,
+                    rest_interval = self.rest_interval,
+                    phase_interval=self.phase_interval,
+                    train_images_number=self.train_images_number,
+                    test_images_number=self.test_images_number,
+                    test_iterations=self.test_iterations
                 ),
                 600: Recorder(["focus_loc"]),
                 601: EventRecorder(["spikes"]),
