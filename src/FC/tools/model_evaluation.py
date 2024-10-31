@@ -6,7 +6,7 @@ from pymonntorch import *
 def accuracy_score(fc_ng, K, window_size, targets, dataset_size, offset = 0) -> float : 
     acc_score = 0
     for i in range(dataset_size) : 
-        y = targets[offset  + i * window_size + window_size//2]
+        y = targets[i * window_size + window_size//2]
         y_hat = model_prediction(
             fc_ng = fc_ng, 
             K = K, 
@@ -21,7 +21,7 @@ def accuracy_score(fc_ng, K, window_size, targets, dataset_size, offset = 0) -> 
 
 def model_prediction(fc_ng, K, st_iter, en_iter, offset) : 
     ng_spikes = []
-    N = fc_ng.size()
+    N = fc_ng.size
     for i in range(K) : 
         st_ng = (N//K) * i
         en_ng = (N//K) * (i + 1)
@@ -31,4 +31,4 @@ def model_prediction(fc_ng, K, st_iter, en_iter, offset) :
         spikes = torch.sum(torch.logical_and(iteration_constraint, class_constraint), dim = 0)
         ng_spikes.append(spikes)
     
-    return torch.argmax(ng_spikes)
+    return torch.argmax(torch.tensor(ng_spikes))
