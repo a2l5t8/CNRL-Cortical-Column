@@ -64,18 +64,18 @@ class FC() :
                 SimpleDendriteStructure(),
                 SimpleDendriteComputation(),
                 LIF(
-                    R = 1,
+                    R = 10,
                     tau = 5,
-                    threshold = -10,
+                    threshold = -30,
                     v_rest = -65,
                     v_reset = -67,
                     init_v = -65,
                 ),
                 KWTA(k = 15),
                 # InherentNoise(scale=random.randint(20, 60)),
-                ActivityBaseHomeostasis(window_size=40, activity_rate=7, updating_rate=0.0001),
+                # ActivityBaseHomeostasis(window_size=40, activity_rate=7, updating_rate=0.0001),
                 Fire(),
-                SpikeTrace(tau_s=15),
+                SpikeTrace(tau_s=20),
                 NeuronAxon()
             ]) | ({ 
                 600 : Recorder(["I"]),

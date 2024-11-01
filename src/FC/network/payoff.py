@@ -28,7 +28,7 @@ class ConfidenceLevelPayOff(Payoff) :
         self.interval = self.parameter("interval", 5)
         self.max_iter = self.parameter("max_iter", 100)
         
-        self.reward = self.parameter("reward", 1)
+        self.reward = self.parameter("reward", 2)
         self.punish = self.parameter("punish", -1)
 
         self.low_confidence_interval = 0
@@ -37,10 +37,11 @@ class ConfidenceLevelPayOff(Payoff) :
         network.decision = -1
 
     def forward(self, network) : 
-        if(network.iteration < 4000) : 
+        if(network.iteration < 1000) : 
             return
 
         ng_classes = network.find_objects("target")
+        print(ng_classes)
         ng = ng_classes[0]
 
         tot = 0
@@ -53,14 +54,19 @@ class ConfidenceLevelPayOff(Payoff) :
 
             act = 0
             if(type(ng.spikes) != type(True)) :
+                print("(.")
                 act = torch.sum(ng.spikes[a:b], 0)
+            
+            print(i, act)
             acts.append(act)
             tot += act
 
+
+        
         if(tot == 0) : 
             network.payoff = 0
             return 
-
+        
         acts = torch.Tensor(acts)
         acts /= tot
         
@@ -72,6 +78,8 @@ class ConfidenceLevelPayOff(Payoff) :
         self.low_confidence_interval = 0
         network.decision = acts.argmax()
 
+        print(network.decision, network.targets)
+        
         if(network.decision == network.targets) : 
             network.payoff = self.reward
         else :
