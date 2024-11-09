@@ -61,8 +61,6 @@ class DataLoaderLayer():
                     test_images_number=self.test_images_number,
                     test_iterations=self.test_iterations
                 ),
-                600: Recorder(["focus_loc"]),
-                601: EventRecorder(["spikes"]),
             }
         )
         return Layer(

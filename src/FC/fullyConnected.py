@@ -32,7 +32,7 @@ class FC() :
                 TimeResolution(dt = 1),
                 Dopamine(tau_dopamine = 50),
             ]) | ({
-                100 : ConfidenceLevelPayOff()
+                100 : ConfidenceLevelPayOff(reward = 0.2, punish = -0.2)
             }))
         
 
@@ -71,14 +71,13 @@ class FC() :
                     v_reset = -67,
                     init_v = -65,
                 ),
-                KWTA(k = 15),
+                KWTA(k = 10),
                 # InherentNoise(scale=random.randint(20, 60)),
-                ActivityBaseHomeostasis(window_size=40, activity_rate=7, updating_rate=0.0001),
+                # ActivityBaseHomeostasis(window_size=40, activity_rate=7, updating_rate=0.0001),
                 Fire(),
-                SpikeTrace(tau_s=15),
+                SpikeTrace(tau_s=10),
                 NeuronAxon()
             ]) | ({ 
-                600 : Recorder(["I"]),
                 601 : EventRecorder(['spikes'])
             }),
             tag = "target",
@@ -102,7 +101,6 @@ class FC() :
                 Fire(),
                 NeuronAxon()
             ]) | ({ 
-                600 : Recorder(["I"]),
                 601 : EventRecorder(['spikes'])
             })
         )
@@ -135,7 +133,6 @@ class FC() :
                     SpikeTrace(tau_s=15),
                     NeuronAxon()
                 ]) | ({ 
-                    600 : Recorder(["I"]),
                     601 : EventRecorder(['spikes'])
                 }),
                 tag = "target",
@@ -162,7 +159,6 @@ class FC() :
                 Fire(),
                 NeuronAxon()
             ]) | ({ 
-                600 : Recorder(["I"]),
                 601 : EventRecorder(['spikes'])
             })
         )

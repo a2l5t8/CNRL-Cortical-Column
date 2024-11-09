@@ -88,8 +88,6 @@ class RefrenceFrame():
                             I_amp = 7,
                             init_v=torch.tensor([-67]).expand(self.side * self.side).clone().to(dtype=torch.float32)
                         ),
-                        600: Recorder(["I", "v"]),
-                        601: EventRecorder(["spikes"]),
                     }
                 ),
             )
