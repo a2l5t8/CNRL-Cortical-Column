@@ -2,6 +2,7 @@ import torch
 
 from pymonntorch import *
 from conex import *
+from lateral_weight import LatheralWeight2Sparse
 
 class L4() : 
 
@@ -140,8 +141,10 @@ class L4() :
             behavior = prioritize_behaviors([
                 SynapseInit(),
                 WeightInitializer(weights=inh_lateral_weight),
-                LateralDendriticInput(current_coef=30000, inhibitory = True),
-            ])
+                SimpleDendriticInput(current_coef=-30000),
+            ]) | ({
+                4 : LatheralWeight2Sparse(r_sparse=False)
+            })
         )
 
         self.sg_ii = SynapseGroup(

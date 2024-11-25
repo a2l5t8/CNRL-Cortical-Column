@@ -194,7 +194,8 @@ class RefrenceFrame():
                 )
                 | (
                     {
-                        180: GPCellLateralInhibition(kernel_side=31, max_inhibition=3, r=16, n=5, inhibitory=1),
+                        181: GPCellLateralInhibition(kernel_side=31, max_inhibition=3, r=16, n=5, inhibitory=1),
+                        4: LatheralWeight2Sparse(r_sprase = False)
                     }
                 ),
             )
@@ -208,8 +209,12 @@ class RefrenceFrame():
             tag="layer_5_6",
             input_ports= {
                 "input" : 
-                    (None, [cnx.Port(object = reference, label = None) for reference in self.refrences])
+                    (None, [cnx.Port(object = reference, label = None) for reference in self.refrences]),
                 },
+            output_ports= {
+                "output" : 
+                    (None, [cnx.Port(object = reference, label = None) for reference in self.refrences]),
+            },
             behavior={
                 255 : PunishModulatorCurrent(group="RefrenceFrame", base_line=20, punish=-10, decay_tau=5),
             }

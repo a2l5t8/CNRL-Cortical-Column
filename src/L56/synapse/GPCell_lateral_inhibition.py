@@ -20,6 +20,8 @@ from conex import (
     WeightInitializer,
 )
 
+from lateral_weight import LatheralWeight2Sparse
+
 
 ### lateral inhibition
 # max_inhibition = 3
@@ -29,7 +31,7 @@ from conex import (
 # n = 9
 # center_point = (side // 2, side // 2)
 
-class GPCellLateralInhibition(LateralDendriticInput):
+class GPCellLateralInhibition(pynt.Behavior):
     def __init__(
             self, 
             kernel_side: int,
