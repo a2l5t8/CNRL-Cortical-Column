@@ -141,7 +141,7 @@ class L4() :
             behavior = prioritize_behaviors([
                 SynapseInit(),
                 WeightInitializer(weights=inh_lateral_weight),
-                SimpleDendriticInput(current_coef=-30000),
+                SimpleDendriticInput(current_coef=-20000),
             ]) | ({
                 4 : LatheralWeight2Sparse(r_sparse=False)
             })

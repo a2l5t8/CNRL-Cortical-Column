@@ -80,7 +80,7 @@ class FC() :
             ]) | ({ 
                 601 : EventRecorder(['spikes'])
             }),
-            tag = "target",
+            tag = "target, fc_pop",
         )
 
         self.I_NG = NeuronGroup(net = self.net,
