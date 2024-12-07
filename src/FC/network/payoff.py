@@ -34,9 +34,12 @@ class ConfidenceLevelPayOff(Payoff) :
         self.low_confidence_interval = 0
         self.classes = self.parameter("classes", 2)
 
+        self.offset = self.parameter("offset", 4000)
+
         network.decision = -1
 
     def forward(self, network) : 
+<<<<<<< HEAD
         if(network.iteration < 1000) : 
             return
 
@@ -60,14 +63,28 @@ class ConfidenceLevelPayOff(Payoff) :
             print(i, act)
             acts.append(act)
             tot += act
+=======
+        if(network.iteration < self.offset) : 
+            return
+
+        ng = network.find_objects("target")[0]
+        shaped_spikes = ng.spikes.view((ng.depth, ng.width))
+
+        acts = torch.sum(shaped_spikes, 1, dtype=torch.float32)
+        tot = torch.sum(acts, 0).item()
+>>>>>>> 71a0ec215178a90c6fb62ef52dea467c430d6c94
 
 
         
         if(tot == 0) : 
             network.payoff = 0
             return 
+<<<<<<< HEAD
         
         acts = torch.Tensor(acts)
+=======
+
+>>>>>>> 71a0ec215178a90c6fb62ef52dea467c430d6c94
         acts /= tot
         
         if(acts.max() < self.confidence_level and self.low_confidence_interval < self.max_iter) : 
