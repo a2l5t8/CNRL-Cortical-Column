@@ -15,7 +15,7 @@ def hypo_func(
     return (torch.tensor([x, y]), torch.rand(28, 28))
 
 # def confidence_crop_interspace(inp_width, inp_height, window_width, window_height):
-def confidence_crop_interspace(image: torch.Tensor, window_width: int, window_height: int):
+def confidence_crop_interspace(image: torch.Tensor, window_width: int, window_height: int, device = "cpu"):
     inp_width = image.size(0)
     inp_height = image.size(1) 
     x1 = window_width//2
@@ -31,7 +31,7 @@ def confidence_crop_interspace(image: torch.Tensor, window_width: int, window_he
     top_left_x = center_x - (window_width//2)
     top_left_y = center_y - (window_height//2)
     top_left_coordinates = [top_left_x, top_left_y]
-    coordinates = torch.tensor([center_coordinates, top_left_coordinates])
+    coordinates = torch.tensor([center_coordinates, top_left_coordinates]).to(device)
 
     return (coordinates, crop(img=image, top=top_left_y, left=top_left_x, height = window_height, width = window_width))
 
@@ -104,7 +104,7 @@ class OnlineDataLoader(pynt.Behavior):
             if(image_idx >= self.data_set.size(0)): 
                 return super().forward(neuron)
             if itr % self.test_interval >= self.test_interval - self.rest_interval:
-                neuron.focus_loc = torch.tensor([-1, -1])
+                neuron.focus_loc = torch.tensor([-1, -1]).to(neuron.device)
                 return super().forward(neuron)
             if image_idx < self.data_set.size(0) and itr % ((self.test_interval - self.rest_interval) // self.batch_number) == 0:
                 self.saccade_infos = confidence_crop_interspace(self.data_set[image_idx], window_height=self.window_size, window_width=self.window_size)
@@ -117,7 +117,7 @@ class OnlineDataLoader(pynt.Behavior):
         image_idx =  neuron.network.iteration // self.train_interval
         neuron.network.targets = neuron.network.network_target[image_idx]
         if neuron.network.iteration % self.train_interval >= self.train_interval - self.rest_interval:
-            neuron.focus_loc = torch.tensor([-1, -1])
+            neuron.focus_loc = torch.tensor([-1, -1]).to(neuron.device)
             return super().forward(neuron)
         if image_idx < self.data_set.size(0) and neuron.network.iteration % ((self.train_interval - self.rest_interval) // self.batch_number) == 0:
             self.saccade_infos = confidence_crop_interspace(self.data_set[image_idx], window_height=self.window_size, window_width=self.window_size)
