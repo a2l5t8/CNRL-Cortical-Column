@@ -62,17 +62,19 @@ class AttentionBasedRSTDP(SimpleRSTDP) :
         """ Attention """
         sz = synapse.dst.size
         att = torch.ones(sz) * self.attention_minus
+        att.to(synapse.device)
 
         dec = synapse.network.decision
         if(dec == -1) :
             att = torch.ones(sz) * self.attention_plus
+            att.to(synapse.device)
         else :
             st = int(dec * sz/self.k)
             en = int((dec + 1) * sz/self.k)
 
             att[st:en] = self.attention_plus
 
-        attention_mat = att.expand((synapse.src.size, -1))
+        attention_mat = att.expand((synapse.src.size, -1)).to(synapse.device)
         """ --------- """
 
         synapse.c += (-synapse.c / self.tau_c) + computed_stdp * attention_mat

@@ -62,8 +62,8 @@ class LatheralWeight2Sparse(Behavior):
         )
 
         ok_idx = ~sp_idx[0].isnan()
-        sp_idx = sp_idx[:, ok_idx]
-        new_w = new_w[ok_idx]
+        sp_idx = sp_idx[:, ok_idx].to(sg.device)
+        new_w = new_w[ok_idx].to(sg.device)
         
         sp_w = torch.sparse_coo_tensor(sp_idx, new_w, (src_numel, src_numel))
         if self.r_sparse:

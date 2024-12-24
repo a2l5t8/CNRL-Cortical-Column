@@ -49,18 +49,18 @@ class DataLoaderLayer():
                 SpikeTrace(tau_s = 3),
                 NeuronAxon(),
             ]) | {
-                270: OnlineDataLoader(
-                    data_set=self.dl.dataset, 
-                    targets=self.targets,
-                    window_size=self.window_size,
-                    batch_number=self.saccades_on_each_image,
-                    train_iterations=self.train_iterations,
-                    rest_interval = self.rest_interval,
-                    phase_interval=self.phase_interval,
-                    train_images_number=self.train_images_number,
-                    test_images_number=self.test_images_number,
-                    test_iterations=self.test_iterations
-                ),
+                # 270: OnlineDataLoader(
+                #     data_set=self.dl.dataset, 
+                #     targets=self.targets,
+                #     window_size=self.window_size,
+                #     batch_number=self.saccades_on_each_image,
+                #     train_iterations=self.train_iterations,
+                #     rest_interval = self.rest_interval,
+                #     phase_interval=self.phase_interval,
+                #     train_images_number=self.train_images_number,
+                #     test_images_number=self.test_images_number,
+                #     test_iterations=self.test_iterations
+                # ),
             }
         )
         return Layer(

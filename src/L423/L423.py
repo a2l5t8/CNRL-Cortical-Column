@@ -140,7 +140,7 @@ class L4() :
             tag = "Proximal", 
             behavior = prioritize_behaviors([
                 SynapseInit(),
-                WeightInitializer(weights=inh_lateral_weight),
+                WeightInitializer(weights=inh_lateral_weight.to(self.net.device)),
                 SimpleDendriticInput(current_coef=-20000),
             ]) | ({
                 4 : LatheralWeight2Sparse(r_sparse=False)

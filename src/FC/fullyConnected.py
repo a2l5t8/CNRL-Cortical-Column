@@ -78,7 +78,7 @@ class FC() :
                 SpikeTrace(tau_s=10),
                 NeuronAxon()
             ]) | ({ 
-                601 : EventRecorder(['spikes'])
+                601 : EventRecorder(['spikes'], device = self.net.device)
             }),
             tag = "target, fc_pop",
         )
@@ -101,7 +101,7 @@ class FC() :
                 Fire(),
                 NeuronAxon()
             ]) | ({ 
-                601 : EventRecorder(['spikes'])
+                601 : EventRecorder(['spikes'], device = self.net.device)
             })
         )
 
@@ -133,7 +133,7 @@ class FC() :
                     SpikeTrace(tau_s=15),
                     NeuronAxon()
                 ]) | ({ 
-                    601 : EventRecorder(['spikes'])
+                    601 : EventRecorder(['spikes'], device = self.net.device)
                 }),
                 tag = "target",
             )
@@ -159,7 +159,7 @@ class FC() :
                 Fire(),
                 NeuronAxon()
             ]) | ({ 
-                601 : EventRecorder(['spikes'])
+                601 : EventRecorder(['spikes'], device = self.net.device)
             })
         )
 
