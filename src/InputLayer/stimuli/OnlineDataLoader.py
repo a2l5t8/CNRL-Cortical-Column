@@ -22,11 +22,21 @@ def confidence_crop_interspace(image: torch.Tensor, window_width: int, window_he
     x2 = (inp_width - 1) - (window_width//2)
     y1 = window_height//2 
     y2 = (inp_height - 1) - (window_height//2)
+
+    """
+    5 fixed points on the image to saccade
+    """
+    cent_x = [window_width//2, window_width//2, inp_width - window_width//2, inp_width - window_width//2, inp_width//2]
+    cent_y = [window_height//2, inp_height - window_height//2, window_height//2, inp_height - window_height//2, inp_height//2]
+
+    opt = random.randint(0, 4)
+    center_x = cent_x[opt]
+    center_y = cent_y[opt]
     
     # import pdb;pdb.set_trace() 
     
-    center_x = random.randint(x1, x2)
-    center_y = random.randint(y1, y2)
+    # center_x = random.randint(x1, x2)
+    # center_y = random.randint(y1, y2)
     center_coordinates = [center_x, center_y]
     top_left_x = center_x - (window_width//2)
     top_left_y = center_y - (window_height//2)
