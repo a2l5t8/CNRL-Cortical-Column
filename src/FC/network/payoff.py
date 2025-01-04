@@ -26,7 +26,7 @@ class ConfidenceLevelPayOff(Payoff) :
         super().initialize(network)
         self.confidence_level = self.parameter("confidence_level", 0.5)
         self.interval = self.parameter("interval", 5)
-        self.max_iter = self.parameter("max_iter", 100)
+        self.max_iter = self.parameter("max_iter", 30)
         
         self.reward = self.parameter("reward", 1)
         self.punish = self.parameter("punish", -1)
@@ -34,7 +34,7 @@ class ConfidenceLevelPayOff(Payoff) :
         self.low_confidence_interval = 0
         self.classes = self.parameter("classes", 2)
 
-        self.offset = self.parameter("offset", 4000)
+        self.offset = self.parameter("offset", 10000)
 
         network.decision = -1
 

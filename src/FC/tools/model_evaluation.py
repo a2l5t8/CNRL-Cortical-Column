@@ -6,7 +6,7 @@ from pymonntorch import *
 def accuracy_score(fc_ng, K, window_size, targets, dataset_size, offset = 0) -> float : 
     acc_score = 0
     for i in range(dataset_size) : 
-        y = targets[i * window_size + window_size//2]
+        y = targets[i]
         y_hat = model_prediction(
             fc_ng = fc_ng, 
             K = K, 

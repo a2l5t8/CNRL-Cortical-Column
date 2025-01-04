@@ -105,10 +105,6 @@ class OnlineDataLoader(pynt.Behavior):
         if 0 < neuron.network.iteration - self.train_iterations and neuron.network.iteration - self.train_iterations <= self.phase_interval:
             return super().forward(neuron) 
         if neuron.network.iteration  > self.train_iterations + self.phase_interval:
-            try:
-                neuron.network.add_behavior(600, pynt.Recorder("targets"))
-            except:
-                pass
             itr = neuron.network.iteration - self.train_iterations - self.phase_interval
             image_idx = itr // self.test_interval + self.train_images_number  
             if(image_idx >= self.data_set.size(0)): 
