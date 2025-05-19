@@ -56,96 +56,95 @@ class OnlineDataLoader(pynt.Behavior):
     def __init__(self, 
         data_set: torch.Tensor,
         targets: torch.Tensor,
-        batch_number: int,
+        saccade_iterations: int,
         train_images_number: int,
         test_images_number: int,
         train_iterations: int,
-        phase_interval: int,
+        rest_iterations: int,
         test_iterations: int,
         window_size: int,
+        max_image_iterations : int,
         ratio: float = 1,
-        rest_interval: int = 5,
+        inter_image_interval: int = 5,
         *args, 
         **kwargs,
     ):
         super().__init__(
             data_set = data_set, 
             targets = targets,
-            batch_number = batch_number, 
+            saccade_iterations = saccade_iterations, 
             train_iterations=train_iterations, 
             ratio=ratio, 
             window_size=window_size,
-            rest_interval=rest_interval, 
+            rest_iterations=rest_iterations, 
             train_images_number = train_images_number, 
             test_images_number = test_images_number,
-            phase_interval = phase_interval,
+            inter_image_interval = inter_image_interval,
             test_iterations = test_iterations,
+            max_image_iterations = max_image_iterations,
             *args, **kwargs)
 
     def initialize(self, neuron):
+        neuron.network.image_idx = 0
+        neuron.network.iter_counter = 0
+
         self.train_images_number = self.parameter("train_images_number", required=True)
         self.test_images_number = self.parameter("test_images_number", required=True)
-        self.phase_interval = self.parameter("phase_interval", required=True)
+
+        self.rest_iterations = self.parameter("rest_iterations", required=True)
         self.test_iterations = self.parameter("test_iterations", required=True)
+        self.train_iterations = self.parameter("train_iterations", required=True)
+
+        self.max_image_iterations = self.parameter("max_image_iterations", required=True)
+        
         self.data_set = self.parameter("data_set", required=True)
         self.targets = self.parameter("targets", required=True)
-        self.batch_number = self.parameter("batch_number", required=True)
+
+        self.saccade_iterations = self.parameter("saccade_iterations", required=True)
         self.ratio = self.parameter("ratio", 2)
-        self.train_iterations = self.parameter("train_iterations", required=True)
-        self.rest_interval = self.parameter("rest_interval", 5)
+
+        self.inter_image_interval = self.parameter("inter_image_interval", 5)
         self.window_size = self.parameter("window_size", required=True)
         self.poisson_coder = SimplePoisson(time_window=1, ratio=self.ratio)
-        self.saccade_infos = confidence_crop_interspace(self.data_set[0], window_height=self.window_size, window_width=self.window_size)
-        self.train_interval = self.train_iterations // self.train_images_number
-        self.test_interval = self.test_iterations // self.test_images_number
+
+        self.saccade_infos = confidence_crop_interspace(self.data_set[neuron.network.image_idx], window_height=self.window_size, window_width=self.window_size)
         neuron.focus_loc = self.saccade_infos[0][0]
         return super().initialize(neuron)
 
     def forward(self, neuron):
         # rest phase between train & test
-        if 0 < neuron.network.iteration - self.train_iterations and neuron.network.iteration - self.train_iterations <= self.phase_interval:
+        if(neuron.network.phase == "rest") :
+            return super().forward(neuron) 
+        
+        # end of train
+        if(neuron.network.phase == "train" and neuron.network.image_idx >= self.train_images_number) :
             return super().forward(neuron) 
 
-        # test phase
-        if neuron.network.iteration  > self.train_iterations + self.phase_interval:
-            itr = neuron.network.iteration - self.train_iterations - self.phase_interval
-            image_idx = itr // self.test_interval + self.train_images_number  
-            if(image_idx >= self.data_set.size(0)): 
-                return super().forward(neuron)
-
-            if itr % self.test_interval >= self.test_interval - self.rest_interval:
-                neuron.focus_loc = torch.tensor([-1, -1]).to(neuron.device)
-                return super().forward(neuron)
-
-            if image_idx < self.data_set.size(0) and (itr % self.test_interval) % ((self.test_interval - self.rest_interval) // self.batch_number) == 0:
-                self.saccade_infos = confidence_crop_interspace(self.data_set[image_idx], window_height=self.window_size, window_width=self.window_size)
-                
-            neuron.focus_loc = self.saccade_infos[0][0]
-            if self.test_interval - self.rest_interval > itr % self.test_interval:
-                spikes = self.poisson_coder(img=self.saccade_infos[1])
-                neuron.network.targets = neuron.network.network_target[image_idx]
-                neuron.v[spikes.view(-1)] = neuron.threshold + 1e-2
-            return super().forward(neuron)
-          
-        # train phase
-        image_idx =  neuron.network.iteration // self.train_interval
-        neuron.network.targets = neuron.network.network_target[image_idx]
-
-        # rest after each image
-        if neuron.network.iteration % self.train_interval >= self.train_interval - self.rest_interval:
+        # end of test
+        if(neuron.network.phase == "test" and neuron.network.image_idx >= self.test_images_number) :
+            return super().forward(neuron) 
+        
+        # inter image rest interval
+        if(neuron.network.iter_counter <= self.inter_image_interval) : 
+            neuron.network.iter_counter += 1
             neuron.focus_loc = torch.tensor([-1, -1]).to(neuron.device)
-            return super().forward(neuron)
+            return super().forward(neuron) 
 
+        # next 
+        if(neuron.network.iter_counter > self.max_image_iterations) : 
+            neuron.network.image_idx += 1
+            neuron.network.iter_counter = 0
 
-        # if image_idx < self.data_set.size(0) and neuron.network.iteration % ((self.train_interval - self.rest_interval) // self.batch_number) == 0:
+        # saccade
+        if(neuron.network.iter_counter % self.saccade_iterations == 0) : 
+            self.saccade_infos = confidence_crop_interspace(self.data_set[neuron.network.image_idx], window_height=self.window_size, window_width=self.window_size)
+            neuron.focus_loc = self.saccade_infos[0][0]
 
-        if image_idx < self.data_set.size(0) and (neuron.network.iteration % self.train_interval) % ((self.train_interval - self.rest_interval) // self.batch_number) == 0:
-            self.saccade_infos = confidence_crop_interspace(self.data_set[image_idx], window_height=self.window_size, window_width=self.window_size)
-          
-        neuron.focus_loc = self.saccade_infos[0][0]
-        if self.train_interval - self.rest_interval > neuron.network.iteration - image_idx * self.train_interval:
-            spikes = self.poisson_coder(img=self.saccade_infos[1])
-            neuron.v[spikes.view(-1)] = neuron.threshold + 1e-2
+        spikes = self.poisson_coder(img=self.saccade_infos[1])
+        neuron.network.targets = neuron.network.network_target[neuron.network.image_idx]
+        neuron.v[spikes.view(-1)] = neuron.threshold + 1e-2
+        neuron.network.iter_counter += 1
+
         return super().forward(neuron)
     
 

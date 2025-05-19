@@ -9,26 +9,28 @@ class DataLoaderLayer():
         net,
         data_loader,
         targets,
-        widnow_size,
-        saccades_on_each_image,
-        rest_interval,
+        window_size,
+        saccade_iterations,
+        inter_image_interval,
         train_iterations,
-        phase_interval,
+        rest_iterations,
         train_images_number,
         test_images_number ,
-        test_iterations
+        test_iterations,
+        max_image_iterations
     ):
         self.net = net
         self.dl = data_loader
         self.targets = targets
-        self.window_size = widnow_size
-        self.saccades_on_each_image = saccades_on_each_image
-        self.rest_interval = rest_interval
+        self.window_size = window_size
+        self.saccade_iterations = saccade_iterations
+        self.inter_image_interval = inter_image_interval
         self.train_iterations = train_iterations
-        self.phase_interval = phase_interval
+        self.rest_iterations = rest_iterations
         self.train_images_number = train_images_number
         self.test_images_number = test_images_number
         self.test_iterations = test_iterations
+        self.max_image_iterations = max_image_iterations
         
     def build_data_loader(self):
         loader_neuron_group = NeuronGroup(
@@ -53,10 +55,11 @@ class DataLoaderLayer():
                         data_set=self.dl.dataset, 
                         targets=self.targets,
                         window_size=self.window_size,
-                        batch_number=self.saccades_on_each_image,
+                        saccade_iterations=self.saccade_iterations,
                         train_iterations=self.train_iterations,
-                        rest_interval = self.rest_interval,
-                        phase_interval=self.phase_interval,
+                        inter_image_interval = self.inter_image_interval,
+                        rest_iterations=self.rest_iterations,
+                        max_image_iterations = self.max_image_iterations,
                         train_images_number=self.train_images_number,
                         test_images_number=self.test_images_number,
                         test_iterations=self.test_iterations
