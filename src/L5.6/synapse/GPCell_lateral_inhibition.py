@@ -49,7 +49,7 @@ class GPCellLateralInhibition(LateralDendriticInput):
         self.n = self.parameter("n", required=True)
         self.max_inhibition = self.parameter("max_inhibition", required=True)   
         self.center_point = (self.kernel_side // 2, self.kernel_side // 2)
-        self.lateral_kernel = torch.tensor([self.max_inhibition]).expand(self.kernel_side, self.kernel_side).to(dtype=torch.float)
+        self.lateral_kernel = torch.tensor([self.max_inhibition]).expand(self.kernel_side, self.kernel_side).to(dtype=torch.float, device=synapse.network.device)
         for _x in range(self.kernel_side):
             for _y in range(self.kernel_side):
                 self.lateral_kernel[_x, _y] = self.lateral_function(_x, _y)

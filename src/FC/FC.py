@@ -2,7 +2,12 @@ from pymonntorch import *
 from conex import *
 import torch
 
+<<<<<<< Updated upstream:src/FC/FC.py
 from network.payoff import ConfidenceLevelPayOff
+=======
+from FC.network.payoff import ConfidenceLevelPayOff
+from L56.spec.layerKWTA import LayerKWTA
+>>>>>>> Stashed changes:src/FC/fullyConnected.py
 
 class FC() :
     """
@@ -32,7 +37,11 @@ class FC() :
                 TimeResolution(dt = 1),
                 Dopamine(tau_dopamine = 20),
             ]) | ({
+<<<<<<< Updated upstream:src/FC/FC.py
                 100 : ConfidenceLevelPayOff()
+=======
+                100 : ConfidenceLevelPayOff(reward = 0.1 * (self.K - 1), punish = -0.1)
+>>>>>>> Stashed changes:src/FC/fullyConnected.py
             }))
         
 
@@ -40,7 +49,12 @@ class FC() :
         add R-STDP configuration and Behaviors
 
         """
+<<<<<<< Updated upstream:src/FC/FC.py
         net.add_behavior(prioritize_behaviors([Dopamine(tau_dopamine = 20)]) | ({100 : ConfidenceLevelPayOff()}))
+=======
+        self.net.add_behavior(100, ConfidenceLevelPayOff(punish = -0.8, reward = 0.8* (self.K - 1), offset = 500), initialize = True)
+        self.net.add_behavior(120, Dopamine(tau_dopamine = 6), initialize = True)
+>>>>>>> Stashed changes:src/FC/fullyConnected.py
 
         self.input_layer = input_layer
 
@@ -51,10 +65,69 @@ class FC() :
         self.create_neuron_groups(N, K)
         self.create_synapses(K)
         self.create_layer()
+<<<<<<< Updated upstream:src/FC/FC.py
+=======
+        
+        # self.create_neuron_groups_at_once(N, K)
+        # self.create_synapses_at_once(K)
+        # self.create_layer_at_once()
+>>>>>>> Stashed changes:src/FC/fullyConnected.py
 
         if(input_layer != None) : 
             self.create_input_connection(input_layer)
 
+<<<<<<< Updated upstream:src/FC/FC.py
+=======
+    def create_neuron_groups_at_once(self, N, K) : 
+
+        self.E_NG_GROUP = NeuronGroup(net = self.net,
+            size = NeuronDimension(depth = self.K, width = self.E),
+            behavior = prioritize_behaviors([
+                SimpleDendriteStructure(),
+                SimpleDendriteComputation(),
+                LIF(
+                    R = 1,
+                    tau = 5,
+                    threshold = -10,
+                    v_rest = -65,
+                    v_reset = -67,
+                    init_v = -65,
+                ),
+                KWTA(k = 5),
+                # InherentNoise(scale=random.randint(20, 60)),
+                # ActivityBaseHomeostasis(window_size=40, activity_rate=7, updating_rate=0.0001),
+                Fire(),
+                SpikeTrace(tau_s=10),
+                NeuronAxon()
+            ]) | ({ 
+                601 : EventRecorder(['spikes'], device = self.net.device)
+            }),
+            tag = "target, fc_pop",
+        )
+
+        self.I_NG = NeuronGroup(net = self.net,
+            size = NeuronDimension(width = self.I * self.K),
+            tag = "inh",
+            behavior = prioritize_behaviors([
+                SimpleDendriteStructure(),
+                SimpleDendriteComputation(),
+                SpikeTrace(tau_s = 20),
+                LIF(
+                    R = 4,
+                    tau = 5,
+                    threshold = -10,
+                    v_rest = -65,
+                    v_reset = -67,
+                    init_v =  -65,
+                ),
+                Fire(),
+                NeuronAxon()
+            ]) | ({ 
+                601 : EventRecorder(['spikes'], device = self.net.device)
+            })
+        )
+
+>>>>>>> Stashed changes:src/FC/fullyConnected.py
 
     def create_neuron_groups(self, N, K) : 
 
@@ -70,13 +143,18 @@ class FC() :
                     SimpleDendriteStructure(),
                     SimpleDendriteComputation(),
                     LIF(
+<<<<<<< Updated upstream:src/FC/FC.py
                         R = 10,
+=======
+                        R = 1,
+>>>>>>> Stashed changes:src/FC/fullyConnected.py
                         tau = 5,
                         threshold = -10,
                         v_rest = -65,
                         v_reset = -67,
                         init_v =  -65,
                     ),
+<<<<<<< Updated upstream:src/FC/FC.py
                     # InherentNoise(scale=random.randint(20, 60)),
                     Fire(),
                     NeuronAxon()
@@ -84,8 +162,19 @@ class FC() :
                     600 : Recorder(["I"]),
                     601 : EventRecorder(['spikes'])
                 })
+=======
+                    # KWTA(k = 5),
+                    # InherentNoise(scale=random.randint(20, 60)),
+                    Fire(),
+                    SpikeTrace(tau_s=10),
+                    NeuronAxon()
+                ]) | ({ 
+                    601 : EventRecorder(['spikes'], device = self.net.device)
+                }),
+                tag = f"target, fc_pop, fc_{i}",
+>>>>>>> Stashed changes:src/FC/fullyConnected.py
             )
-
+            E_NG.gid = i
             self.E_NG_list.append(E_NG)
 
 
@@ -97,7 +186,7 @@ class FC() :
                 SimpleDendriteComputation(),
                 SpikeTrace(tau_s = 20),
                 LIF(
-                    R = 10,
+                    R = 4,
                     tau = 5,
                     threshold = -10,
                     v_rest = -65,
@@ -131,7 +220,11 @@ class FC() :
                 tag = "Proximal, EXI",
                 behavior = prioritize_behaviors([
                     SynapseInit(),
+<<<<<<< Updated upstream:src/FC/FC.py
                     WeightInitializer(mode = "random"),
+=======
+                    WeightInitializer(mode = 0),
+>>>>>>> Stashed changes:src/FC/fullyConnected.py
                     SimpleDendriticInput(),
                 ])
             )
@@ -143,7 +236,11 @@ class FC() :
                 tag = "Proximal, inh",
                 behavior = prioritize_behaviors([
                     SynapseInit(),
+<<<<<<< Updated upstream:src/FC/FC.py
                     WeightInitializer(mode = 4),
+=======
+                    WeightInitializer(mode = 600),
+>>>>>>> Stashed changes:src/FC/fullyConnected.py
                     SimpleDendriticInput(),
                 ])
             )
@@ -159,11 +256,45 @@ class FC() :
                     SimpleDendriticInput(),
                 ])
             )
+<<<<<<< Updated upstream:src/FC/FC.py
+=======
+
+            self.synapses.append(EE_SYN)
+            self.synapses.append(EI_SYN)
+            self.synapses.append(IE_SYN)
+
+    def create_layer_at_once(self) : 
+
+        self.layer = Layer(
+            net = self.net,
+            neurongroups = [self.E_NG_GROUP ,self.I_NG],
+            synapsegroups = self.synapses,
+            input_ports = {
+                "input" : (
+                    None,
+                    [Port(object=self.E_NG_GROUP)]
+                )
+            },
+            output_ports= {
+                "output" : (
+                    None,
+                    [Port(object=self.E_NG_GROUP)]
+                )
+            }
+        )
+>>>>>>> Stashed changes:src/FC/fullyConnected.py
         
     def create_layer(self) : 
         """
         Creating a Layer container for the whole decision-making network and their synapses between themselves.
         """
+        
+        output_ports = dict({})
+        
+        for i in range(self.K):
+            output_ports.update({
+                f"output_{i}" : (None, [Port(object=self.E_NG_list[i])])
+            })
 
         self.layer = Layer(
             net = self.net,
@@ -174,8 +305,17 @@ class FC() :
                     None,
                     [Port(object=self.E_NG_list[i]) for i in range(self.K)]
                 )
+<<<<<<< Updated upstream:src/FC/FC.py
+=======
+            },
+            output_ports = output_ports,
+            behavior={
+                300 : LayerKWTA(k=7, group="fc_pop")
+>>>>>>> Stashed changes:src/FC/fullyConnected.py
             }
         )
+        
+        
 
 
     def create_input_connection(self, input_layer) : 
