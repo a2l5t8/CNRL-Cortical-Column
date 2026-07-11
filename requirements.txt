@@ -1,1 +1,13 @@
+cnrl-conex>=0.1.5
 pymonntorch
+torch
+torchvision
+matplotlib
+numpy
+scipy
+scikit-learn
+pandas
+pytest
+seaborn
+tqdm
+pymupdf

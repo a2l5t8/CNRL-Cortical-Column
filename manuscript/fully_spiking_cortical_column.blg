@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: fully_spiking_cortical_column.aux
+Reallocating 'name_of_file' (item size: 1) to 9 items.
+The style file: unsrtnat.bst
+Reallocating 'name_of_file' (item size: 1) to 11 items.
+Database file #1: references.bib
+You've used 30 entries,
+            2481 wiz_defined-function locations,
+            762 strings with 9683 characters,
+and the built_in function-call counts, 11646 in all, are:
+= -- 1052
+> -- 518
+< -- 17
++ -- 209
+- -- 148
+* -- 944
+:= -- 1864
+add.period$ -- 118
+call.type$ -- 30
+change.case$ -- 56
+chr.to.int$ -- 29
+cite$ -- 30
+duplicate$ -- 560
+empty$ -- 1081
+format.name$ -- 196
+if$ -- 2454
+int.to.chr$ -- 2
+int.to.str$ -- 31
+missing$ -- 32
+newline$ -- 186
+num.names$ -- 90
+pop$ -- 214
+preamble$ -- 1
+purify$ -- 30
+quote$ -- 0
+skip$ -- 320
+stack$ -- 0
+substring$ -- 623
+swap$ -- 62
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 198
+warning$ -- 0
+while$ -- 104
+width$ -- 0
+write$ -- 447

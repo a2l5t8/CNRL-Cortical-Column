@@ -1,0 +1,220 @@
+\begin{thebibliography}{30}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Hubel and Wiesel(1962)]{hubel1962}
+David~H. Hubel and Torsten~N. Wiesel.
+\newblock Receptive fields, binocular interaction and functional architecture
+  in the cat's visual cortex.
+\newblock \emph{The Journal of Physiology}, 160\penalty0 (1):\penalty0
+  106--154, 1962.
+\newblock \doi{10.1113/jphysiol.1962.sp006837}.
+
+\bibitem[Spruston(2008)]{spruston2008}
+Nelson Spruston.
+\newblock Pyramidal neurons: Dendritic structure and synaptic integration.
+\newblock \emph{Nature Reviews Neuroscience}, 9\penalty0 (3):\penalty0
+  206--221, 2008.
+\newblock \doi{10.1038/nrn2286}.
+
+\bibitem[Larkum(2013)]{larkum2013}
+Matthew Larkum.
+\newblock A cellular mechanism for cortical associations: An organizing
+  principle for the cerebral cortex.
+\newblock \emph{Trends in Neurosciences}, 36\penalty0 (3):\penalty0 141--151,
+  2013.
+\newblock \doi{10.1016/j.tins.2012.11.006}.
+
+\bibitem[Hawkins et~al.(2017)Hawkins, Ahmad, and Cui]{hawkins2017}
+Jeff Hawkins, Subutai Ahmad, and Yuwei Cui.
+\newblock A theory of how columns in the neocortex enable learning the
+  structure of the world.
+\newblock \emph{Frontiers in Neural Circuits}, 11:\penalty0 81, 2017.
+\newblock \doi{10.3389/fncir.2017.00081}.
+
+\bibitem[Lewis et~al.(2019)Lewis, Purdy, Ahmad, and Hawkins]{lewis2019}
+Marcus Lewis, Scott Purdy, Subutai Ahmad, and Jeff Hawkins.
+\newblock Locations in the neocortex: A theory of sensorimotor object
+  recognition using cortical grid cells.
+\newblock \emph{Frontiers in Neural Circuits}, 13:\penalty0 22, 2019.
+\newblock \doi{10.3389/fncir.2019.00022}.
+
+\bibitem[Hawkins(2021)]{hawkins2021}
+Jeff Hawkins.
+\newblock \emph{A Thousand Brains: A New Theory of Intelligence}.
+\newblock Basic Books, 2021.
+
+\bibitem[Hafting et~al.(2005)Hafting, Fyhn, Molden, Moser, and
+  Moser]{hafting2005}
+Torkel Hafting, Marianne Fyhn, Sturla Molden, May-Britt Moser, and Edvard~I.
+  Moser.
+\newblock Microstructure of a spatial map in the entorhinal cortex.
+\newblock \emph{Nature}, 436\penalty0 (7052):\penalty0 801--806, 2005.
+\newblock \doi{10.1038/nature03721}.
+
+\bibitem[Duhamel et~al.(1992)Duhamel, Colby, and Goldberg]{duhamel1992}
+Jean-Rene Duhamel, Carol~L. Colby, and Michael~E. Goldberg.
+\newblock The updating of the representation of visual space in parietal cortex
+  by intended eye movements.
+\newblock \emph{Science}, 255\penalty0 (5040):\penalty0 90--92, 1992.
+\newblock \doi{10.1126/science.1553535}.
+
+\bibitem[Najemnik and Geisler(2005)]{najemnik2005}
+Jiri Najemnik and Wilson~S. Geisler.
+\newblock Optimal eye movement strategies in visual search.
+\newblock \emph{Nature}, 434\penalty0 (7031):\penalty0 387--391, 2005.
+\newblock \doi{10.1038/nature03390}.
+
+\bibitem[Gold and Shadlen(2007)]{gold2007}
+Joshua~I. Gold and Michael~N. Shadlen.
+\newblock The neural basis of decision making.
+\newblock \emph{Annual Review of Neuroscience}, 30:\penalty0 535--574, 2007.
+\newblock \doi{10.1146/annurev.neuro.29.051605.113038}.
+
+\bibitem[Markram et~al.(1997)Markram, Lubke, Frotscher, and
+  Sakmann]{markram1997}
+Henry Markram, Joachim Lubke, Michael Frotscher, and Bert Sakmann.
+\newblock Regulation of synaptic efficacy by coincidence of postsynaptic aps
+  and epsps.
+\newblock \emph{Science}, 275\penalty0 (5297):\penalty0 213--215, 1997.
+\newblock \doi{10.1126/science.275.5297.213}.
+
+\bibitem[Bi and Poo(1998)]{bi1998}
+Guo-Qiang Bi and Mu-Ming Poo.
+\newblock Synaptic modifications in cultured hippocampal neurons: Dependence on
+  spike timing, synaptic strength, and postsynaptic cell type.
+\newblock \emph{Journal of Neuroscience}, 18\penalty0 (24):\penalty0
+  10464--10472, 1998.
+\newblock \doi{10.1523/JNEUROSCI.18-24-10464.1998}.
+
+\bibitem[Song et~al.(2000)Song, Miller, and Abbott]{song2000}
+Sen Song, Kenneth~D. Miller, and L.~F. Abbott.
+\newblock Competitive hebbian learning through spike-timing-dependent synaptic
+  plasticity.
+\newblock \emph{Nature Neuroscience}, 3\penalty0 (9):\penalty0 919--926, 2000.
+\newblock \doi{10.1038/78829}.
+
+\bibitem[Schultz et~al.(1997)Schultz, Dayan, and Montague]{schultz1997}
+Wolfram Schultz, Peter Dayan, and P.~Read Montague.
+\newblock A neural substrate of prediction and reward.
+\newblock \emph{Science}, 275\penalty0 (5306):\penalty0 1593--1599, 1997.
+\newblock \doi{10.1126/science.275.5306.1593}.
+
+\bibitem[Florian(2007)]{florian2007}
+Razvan~V. Florian.
+\newblock Reinforcement learning through modulation of spike-timing-dependent
+  synaptic plasticity.
+\newblock \emph{Neural Computation}, 19\penalty0 (6):\penalty0 1468--1502,
+  2007.
+\newblock \doi{10.1162/neco.2007.19.6.1468}.
+
+\bibitem[Izhikevich(2007)]{izhikevich2007}
+Eugene~M. Izhikevich.
+\newblock Solving the distal reward problem through linkage of stdp and
+  dopamine signaling.
+\newblock \emph{Cerebral Cortex}, 17\penalty0 (10):\penalty0 2443--2452, 2007.
+\newblock \doi{10.1093/cercor/bhl152}.
+
+\bibitem[Fremaux and Gerstner(2016)]{fremaux2016}
+Nicolas Fremaux and Wulfram Gerstner.
+\newblock Neuromodulated stdp, and theory of three-factor learning rules.
+\newblock \emph{Frontiers in Neural Circuits}, 9:\penalty0 85, 2016.
+\newblock \doi{10.3389/fncir.2015.00085}.
+
+\bibitem[Neftci et~al.(2019)Neftci, Mostafa, and Zenke]{neftci2019}
+Emre~O. Neftci, Hesham Mostafa, and Friedemann Zenke.
+\newblock Surrogate gradient learning in spiking neural networks.
+\newblock \emph{IEEE Signal Processing Magazine}, 36\penalty0 (6):\penalty0
+  51--63, 2019.
+\newblock \doi{10.1109/MSP.2019.2931595}.
+
+\bibitem[Roy et~al.(2019)Roy, Jaiswal, and Panda]{roy2019}
+Kaushik Roy, Akhilesh Jaiswal, and Priyadarshini Panda.
+\newblock Towards spike-based machine intelligence with neuromorphic computing.
+\newblock \emph{Nature}, 575\penalty0 (7784):\penalty0 607--617, 2019.
+\newblock \doi{10.1038/s41586-019-1677-2}.
+
+\bibitem[Gerstner and Kistler(2002)]{gerstner2002}
+Wulfram Gerstner and Werner~M. Kistler.
+\newblock \emph{Spiking Neuron Models: Single Neurons, Populations,
+  Plasticity}.
+\newblock Cambridge University Press, 2002.
+\newblock \doi{10.1017/CBO9780511815706}.
+
+\bibitem[Vieth et~al.(2024)Vieth, Rahimi, Gorgan~Mohammadi, Triesch, and
+  Ganjtabesh]{vieth2024}
+Marius Vieth, Ali Rahimi, Ashena Gorgan~Mohammadi, Jochen Triesch, and Mohammad
+  Ganjtabesh.
+\newblock Accelerating spiking neural network simulations with pymonnto and
+  pymonntorch.
+\newblock \emph{Frontiers in Neuroinformatics}, 18:\penalty0 1331220, 2024.
+\newblock \doi{10.3389/fninf.2024.1331220}.
+
+\bibitem[{Cognitive Neuroscience Research
+  Laboratory}(2026{\natexlab{a}})]{conex2026}
+{Cognitive Neuroscience Research Laboratory}.
+\newblock Conex: A framework for building cortical networks,
+  2026{\natexlab{a}}.
+\newblock URL \url{https://github.com/cnrl/CoNeX}.
+\newblock Accessed 3 July 2026.
+
+\bibitem[{Cognitive Neuroscience Research
+  Laboratory}(2026{\natexlab{b}})]{pymonntorch2026}
+{Cognitive Neuroscience Research Laboratory}.
+\newblock Pymonntorch, 2026{\natexlab{b}}.
+\newblock URL \url{https://github.com/cnrl/PyMoNNtorch}.
+\newblock Accessed 3 July 2026.
+
+\bibitem[Fei-Fei et~al.(2006)Fei-Fei, Fergus, and Perona]{fei2006}
+Li~Fei-Fei, Rob Fergus, and Pietro Perona.
+\newblock One-shot learning of object categories.
+\newblock \emph{IEEE Transactions on Pattern Analysis and Machine
+  Intelligence}, 28\penalty0 (4):\penalty0 594--611, 2006.
+\newblock \doi{10.1109/TPAMI.2006.79}.
+
+\bibitem[LeCun et~al.(1998)LeCun, Bottou, Bengio, and Haffner]{lecun1998}
+Yann LeCun, Leon Bottou, Yoshua Bengio, and Patrick Haffner.
+\newblock Gradient-based learning applied to document recognition.
+\newblock \emph{Proceedings of the IEEE}, 86\penalty0 (11):\penalty0
+  2278--2324, 1998.
+\newblock \doi{10.1109/5.726791}.
+
+\bibitem[O'Reilly and Munakata(2000)]{oreilly2000}
+Randall~C. O'Reilly and Yuko Munakata.
+\newblock \emph{Computational Explorations in Cognitive Neuroscience:
+  Understanding the Mind by Simulating the Brain}.
+\newblock MIT Press, 2000.
+
+\bibitem[Turrigiano et~al.(1998)Turrigiano, Leslie, Desai, Rutherford, and
+  Nelson]{turrigiano1998}
+Gina~G. Turrigiano, Kenneth~R. Leslie, Niraj~S. Desai, Linda~C. Rutherford, and
+  Sacha~B. Nelson.
+\newblock Activity-dependent scaling of quantal amplitude in neocortical
+  neurons.
+\newblock \emph{Nature}, 391\penalty0 (6670):\penalty0 892--896, 1998.
+\newblock \doi{10.1038/36103}.
+
+\bibitem[Clopper and Pearson(1934)]{clopper1934}
+C.~J. Clopper and E.~S. Pearson.
+\newblock The use of confidence or fiducial limits illustrated in the case of
+  the binomial.
+\newblock \emph{Biometrika}, 26\penalty0 (4):\penalty0 404--413, 1934.
+\newblock \doi{10.1093/biomet/26.4.404}.
+
+\bibitem[McNemar(1947)]{mcnemar1947}
+Quinn McNemar.
+\newblock Note on the sampling error of the difference between correlated
+  proportions or percentages.
+\newblock \emph{Psychometrika}, 12\penalty0 (2):\penalty0 153--157, 1947.
+\newblock \doi{10.1007/BF02295996}.
+
+\bibitem[Efron and Tibshirani(1993)]{efron1993}
+Bradley Efron and Robert~J. Tibshirani.
+\newblock \emph{An Introduction to the Bootstrap}.
+\newblock Chapman and Hall/CRC, 1993.
+\newblock \doi{10.1201/9780429246593}.
+
+\end{thebibliography}

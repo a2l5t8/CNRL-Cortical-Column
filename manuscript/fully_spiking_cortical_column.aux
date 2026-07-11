@@ -1,0 +1,174 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{hubel1962}
+\citation{spruston2008,larkum2013}
+\citation{hawkins2017,lewis2019,hawkins2021}
+\citation{hafting2005}
+\citation{duhamel1992}
+\citation{najemnik2005,gold2007}
+\citation{markram1997,bi1998}
+\citation{song2000}
+\citation{schultz1997,florian2007,izhikevich2007,fremaux2016}
+\citation{neftci2019,roy2019}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textbf  {Fully spiking cortical-column architecture.} Raw images are sampled by nine saccades. Retinal spikes drive L4{} convolutional filters, pooled L2/3{} winners represent sparse local features, and a current-driven L5/6{} LIF population represents the current location in a $3\times 3$ reference frame. A physical apical synapse primes L2/3{} from L5/6{}. A reciprocal L2/3{}$\rightarrow $L5/6{} synapse is trained by local coactivity and opened during feature-to-frame retrieval assays. Both binding projections learn concurrently with decision eligibility during acquisition. The decision layer receives only location-gated feature spikes and is modulated after an unclamped free decision.}}{2}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:architecture}{{1}{2}{\textbf {Fully spiking cortical-column architecture.} Raw images are sampled by nine saccades. Retinal spikes drive \Lfour {} convolutional filters, pooled \Lthree {} winners represent sparse local features, and a current-driven \Lfive {} LIF population represents the current location in a $3\times 3$ reference frame. A physical apical synapse primes \Lthree {} from \Lfive {}. A reciprocal \Lthree {}$\rightarrow $\Lfive {} synapse is trained by local coactivity and opened during feature-to-frame retrieval assays. Both binding projections learn concurrently with decision eligibility during acquisition. The decision layer receives only location-gated feature spikes and is modulated after an unclamped free decision}{figure.caption.1}{}}
+\newlabel{fig:architecture@cref}{{[figure][1][]1}{[1][2][]2}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Results}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Joint online acquisition preserves held-out accuracy}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Reference-frame spikes are causal for spatial evidence}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces \textbf  {Primary held-out performance after joint acquisition.} Intervals for the endpoint checkpoints are exact binomial intervals; multiseed intervals are across five decision-layer training seeds.}}{3}{table.caption.2}\protected@file@percent }
+\newlabel{tab:performance}{{1}{3}{\textbf {Primary held-out performance after joint acquisition.} Intervals for the endpoint checkpoints are exact binomial intervals; multiseed intervals are across five decision-layer training seeds}{table.caption.2}{}}
+\newlabel{tab:performance@cref}{{[table][1][]1}{[1][2][]3}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \textbf  {Held-out accuracy and reference-frame controls.} Ordered L5/6{} reference-frame spikes reproduce live inference. Reversing, shuffling, or silencing L5/6{} strongly degrades accuracy. Accuracy grows over ordered saccades, especially on MNIST, showing evidence accumulation rather than a single-glimpse readout.}}{3}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:performance_controls}{{2}{3}{\textbf {Held-out accuracy and reference-frame controls.} Ordered \Lfive {} reference-frame spikes reproduce live inference. Reversing, shuffling, or silencing \Lfive {} strongly degrades accuracy. Accuracy grows over ordered saccades, especially on MNIST, showing evidence accumulation rather than a single-glimpse readout}{figure.caption.3}{}}
+\newlabel{fig:performance_controls@cref}{{[figure][2][]2}{[1][2][]3}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Feature-location binding works in both directions}{3}{subsection.2.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces \textbf  {Replication, ablations, and matched non-spiking readouts.} \textbf  {A} Five decision-plasticity seeds preserve Caltech accuracy and produce a tight MNIST range. \textbf  {B} Causal ablations show that ordered L5/6{} gating, location-specific decision weights, and dopamine-gated learning are required, especially on MNIST. \textbf  {C} Matched non-spiking readouts on the same cached events are shown as analysis baselines, not as part of the model. A sparse spatial logistic readout approaches the spiking endpoint, whereas a location-agnostic rate readout drops substantially and shuffled-label readouts return to chance.}}{4}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:multiseed}{{3}{4}{\textbf {Replication, ablations, and matched non-spiking readouts.} \textbf {A} Five decision-plasticity seeds preserve Caltech accuracy and produce a tight MNIST range. \textbf {B} Causal ablations show that ordered \Lfive {} gating, location-specific decision weights, and dopamine-gated learning are required, especially on MNIST. \textbf {C} Matched non-spiking readouts on the same cached events are shown as analysis baselines, not as part of the model. A sparse spatial logistic readout approaches the spiking endpoint, whereas a location-agnostic rate readout drops substantially and shuffled-label readouts return to chance}{figure.caption.4}{}}
+\newlabel{fig:multiseed@cref}{{[figure][3][]3}{[1][3][]4}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Ambiguous early evidence is resolved by later reference-frame input}{4}{subsection.2.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \textbf  {Reference-frame-gated evidence resolves ambiguous early glimpses.} Decision-spike traces are plotted after each saccade for example Caltech and MNIST samples. The correct class becomes dominant only when later feature spikes arrive at their matched L5/6{} locations. Reversing, shuffling, or silencing the location sequence disrupts the evidence trajectory.}}{4}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:ambiguity}{{4}{4}{\textbf {Reference-frame-gated evidence resolves ambiguous early glimpses.} Decision-spike traces are plotted after each saccade for example Caltech and MNIST samples. The correct class becomes dominant only when later feature spikes arrive at their matched \Lfive {} locations. Reversing, shuffling, or silencing the location sequence disrupts the evidence trajectory}{figure.caption.4}{}}
+\newlabel{fig:ambiguity@cref}{{[figure][4][]4}{[1][3][]4}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces \textbf  {Bidirectional feature-location binding in spiking populations.} Feature-to-frame retrieval receives a L2/3{} spike cue and predicts the L5/6{} location. Frame-to-feature stimulation injects current into a L5/6{} LIF location unit while visual input is clamped to zero and measures the resulting L2/3{} prime. Matched locations are consistently stronger than reversed-location controls.}}{5}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:bidirectional}{{5}{5}{\textbf {Bidirectional feature-location binding in spiking populations.} Feature-to-frame retrieval receives a \Lthree {} spike cue and predicts the \Lfive {} location. Frame-to-feature stimulation injects current into a \Lfive {} LIF location unit while visual input is clamped to zero and measures the resulting \Lthree {} prime. Matched locations are consistently stronger than reversed-location controls}{figure.caption.5}{}}
+\newlabel{fig:bidirectional@cref}{{[figure][5][]5}{[1][3][]5}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces \textbf  {The same visual feature across images retrieves a shared reference-frame representation.} Held-out samples from the same class and saccade location are compared through their sparse L2/3{} events and retrieved L5/6{} locations. The assay tests whether the learned binding generalises across images rather than storing only a single exemplar.}}{6}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:cross_image}{{6}{6}{\textbf {The same visual feature across images retrieves a shared reference-frame representation.} Held-out samples from the same class and saccade location are compared through their sparse \Lthree {} events and retrieved \Lfive {} locations. The assay tests whether the learned binding generalises across images rather than storing only a single exemplar}{figure.caption.6}{}}
+\newlabel{fig:cross_image@cref}{{[figure][6][]6}{[1][3][]6}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces \textbf  {Location-specific binding matrices.} Rows and columns summarise how learned apical and retrieval weights associate L2/3{} features with L5/6{} reference-frame locations. The block structure is weakened by shuffled controls, consistent with learned feature-location binding rather than a location-independent feature prior.}}{6}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:binding_matrices}{{7}{6}{\textbf {Location-specific binding matrices.} Rows and columns summarise how learned apical and retrieval weights associate \Lthree {} features with \Lfive {} reference-frame locations. The block structure is weakened by shuffled controls, consistent with learned feature-location binding rather than a location-independent feature prior}{figure.caption.6}{}}
+\newlabel{fig:binding_matrices@cref}{{[figure][7][]7}{[1][3][]6}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces \textbf  {Prospective reference-frame priming.} With visual input clamped to zero, current-driven L5/6{} spikes prime L2/3{} features expected at the stimulated location. Matched primes outperform reversed, shuffled, global-prior, and random controls on both datasets, and feature cues retrieve the corresponding L5/6{} location.}}{7}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:prospective}{{8}{7}{\textbf {Prospective reference-frame priming.} With visual input clamped to zero, current-driven \Lfive {} spikes prime \Lthree {} features expected at the stimulated location. Matched primes outperform reversed, shuffled, global-prior, and random controls on both datasets, and feature cues retrieve the corresponding \Lfive {} location}{figure.caption.7}{}}
+\newlabel{fig:prospective@cref}{{[figure][8][]8}{[1][3][]7}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces \textbf  {L4{} kernel evolution during unsupervised local learning.} Kernels are shown at initial, early, middle, and final training stages. The quantitative panels report RMS change, spatial autocorrelation, response selectivity, saturation, and held-out winner coverage, demonstrating that the filters learn and then stabilise rather than remaining random.}}{8}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:l4kernels}{{9}{8}{\textbf {\Lfour {} kernel evolution during unsupervised local learning.} Kernels are shown at initial, early, middle, and final training stages. The quantitative panels report RMS change, spatial autocorrelation, response selectivity, saturation, and held-out winner coverage, demonstrating that the filters learn and then stabilise rather than remaining random}{figure.caption.8}{}}
+\newlabel{fig:l4kernels@cref}{{[figure][9][]9}{[1][8][]8}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}L4{} kernels learn and stabilise under local competition}{8}{subsection.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}A learned centered-face reference frame supports search in larger images}{8}{subsection.2.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.7}The same scan becomes a calibrated face detector}{8}{subsection.2.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Discussion}{8}{section.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces \textbf  {Source-disjoint Caltech Faces search protocol.} The model is trained on centered \emph  {Faces\_easy} and Motorbikes. It is then frozen and scanned over non-centered \emph  {Faces} images using the same spiking column and candidate saccade geometry. Ground-truth boxes are reserved for final evaluation.}}{9}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:face_protocol}{{10}{9}{\textbf {Source-disjoint Caltech Faces search protocol.} The model is trained on centered \emph {Faces\_easy} and Motorbikes. It is then frozen and scanned over non-centered \emph {Faces} images using the same spiking column and candidate saccade geometry. Ground-truth boxes are reserved for final evaluation}{figure.caption.9}{}}
+\newlabel{fig:face_protocol@cref}{{[figure][10][]10}{[1][8][]9}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces \textbf  {Qualitative face-localization examples.} Examples show selected windows, ground-truth boxes, and evidence maps for unseen non-centered \emph  {Faces}. The selected window tracks the object rather than the image centre when the reference-frame sequence is preserved.}}{9}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:face_examples}{{11}{9}{\textbf {Qualitative face-localization examples.} Examples show selected windows, ground-truth boxes, and evidence maps for unseen non-centered \emph {Faces}. The selected window tracks the object rather than the image centre when the reference-frame sequence is preserved}{figure.caption.10}{}}
+\newlabel{fig:face_examples@cref}{{[figure][11][]11}{[1][8][]9}{}{}{}}
+\citation{gerstner2002}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces \textbf  {Quantitative localization metrics.} Normal ordered L5/6{} scans outperform reversed, silent, and fixed-prior controls in mean IoU and CorLoc, with the strongest separation on displaced faces. Oracle performance reports the best candidate window available to the scan grid.}}{10}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:face_metrics}{{12}{10}{\textbf {Quantitative localization metrics.} Normal ordered \Lfive {} scans outperform reversed, silent, and fixed-prior controls in mean IoU and CorLoc, with the strongest separation on displaced faces. Oracle performance reports the best candidate window available to the scan grid}{figure.caption.11}{}}
+\newlabel{fig:face_metrics@cref}{{[figure][12][]12}{[1][8][]10}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Materials and methods}{10}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Neuron and spike dynamics}{10}{subsection.4.1}\protected@file@percent }
+\newlabel{eq:lif_integrate}{{1}{10}{Neuron and spike dynamics}{equation.1}{}}
+\newlabel{eq:lif_integrate@cref}{{[equation][1][]1}{[1][10][]10}{}{}{}}
+\citation{vieth2024,conex2026,pymonntorch2026}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces \textbf  {Calibrated detection of non-centered Caltech Faces.} The rule and threshold are selected on development images and evaluated on source-disjoint positives and negatives. Ordered reference-frame evidence gives high AP and ROC-AUC; reversed and silent controls degrade sharply.}}{11}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:face_detection}{{13}{11}{\textbf {Calibrated detection of non-centered Caltech Faces.} The rule and threshold are selected on development images and evaluated on source-disjoint positives and negatives. Ordered reference-frame evidence gives high AP and ROC-AUC; reversed and silent controls degrade sharply}{figure.caption.12}{}}
+\newlabel{fig:face_detection@cref}{{[figure][13][]13}{[1][8][]11}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces \textbf  {Detection examples.} Representative true positives, false negatives, true negatives, and false positives are shown with candidate evidence maps and selected windows. The examples illustrate both the capability and the remaining failure modes of the frozen reference-frame scan.}}{11}{figure.caption.13}\protected@file@percent }
+\newlabel{fig:face_detection_examples}{{14}{11}{\textbf {Detection examples.} Representative true positives, false negatives, true negatives, and false positives are shown with candidate evidence maps and selected windows. The examples illustrate both the capability and the remaining failure modes of the frozen reference-frame scan}{figure.caption.13}{}}
+\newlabel{fig:face_detection_examples@cref}{{[figure][14][]14}{[1][8][]11}{}{}{}}
+\newlabel{eq:lif_spike}{{2}{11}{Neuron and spike dynamics}{equation.2}{}}
+\newlabel{eq:lif_spike@cref}{{[equation][2][]2}{[1][10][]11}{}{}{}}
+\newlabel{eq:lif_reset}{{3}{11}{Neuron and spike dynamics}{equation.3}{}}
+\newlabel{eq:lif_reset@cref}{{[equation][3][]3}{[1][11][]11}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Implementation and reproducibility}{11}{subsection.4.2}\protected@file@percent }
+\citation{fei2006}
+\citation{lecun1998}
+\citation{markram1997,bi1998,song2000}
+\citation{oreilly2000}
+\citation{turrigiano1998}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Datasets and train/validation splits}{12}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Preprocessing, saccades, and retinal spike encoding}{12}{subsection.4.4}\protected@file@percent }
+\newlabel{eq:dog}{{4}{12}{Preprocessing, saccades, and retinal spike encoding}{equation.4}{}}
+\newlabel{eq:dog@cref}{{[equation][4][]4}{[1][12][]12}{}{}{}}
+\newlabel{eq:phase}{{5}{12}{Preprocessing, saccades, and retinal spike encoding}{equation.5}{}}
+\newlabel{eq:phase@cref}{{[equation][5][]5}{[1][12][]12}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}L4{} convolutional feature maps}{12}{subsection.4.5}\protected@file@percent }
+\newlabel{eq:l4conv}{{7}{12}{\Lfour {} convolutional feature maps}{equation.7}{}}
+\newlabel{eq:l4conv@cref}{{[equation][7][]7}{[1][12][]12}{}{}{}}
+\newlabel{eq:l4stdp}{{8}{12}{\Lfour {} convolutional feature maps}{equation.8}{}}
+\newlabel{eq:l4stdp@cref}{{[equation][8][]8}{[1][12][]12}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}L2/3{} pooling, K-WTA sparsity, and apical current}{12}{subsection.4.6}\protected@file@percent }
+\newlabel{eq:l23membrane}{{9}{12}{\Lthree {} pooling, K-WTA sparsity, and apical current}{equation.9}{}}
+\newlabel{eq:l23membrane@cref}{{[equation][9][]9}{[1][12][]12}{}{}{}}
+\newlabel{eq:kwta}{{10}{12}{\Lthree {} pooling, K-WTA sparsity, and apical current}{equation.10}{}}
+\newlabel{eq:kwta@cref}{{[equation][10][]10}{[1][12][]12}{}{}{}}
+\newlabel{eq:apical}{{11}{12}{\Lthree {} pooling, K-WTA sparsity, and apical current}{equation.11}{}}
+\newlabel{eq:apical@cref}{{[equation][11][]11}{[1][12][]12}{}{}{}}
+\newlabel{eq:reciprocal}{{12}{12}{\Lthree {} pooling, K-WTA sparsity, and apical current}{equation.12}{}}
+\newlabel{eq:reciprocal@cref}{{[equation][12][]12}{[1][12][]12}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}L5/6{} current-driven reference-frame LIF layer}{12}{subsection.4.7}\protected@file@percent }
+\newlabel{eq:l56current}{{13}{12}{\Lfive {} current-driven reference-frame LIF layer}{equation.13}{}}
+\newlabel{eq:l56current@cref}{{[equation][13][]13}{[1][12][]12}{}{}{}}
+\newlabel{eq:l56lif}{{15}{12}{\Lfive {} current-driven reference-frame LIF layer}{equation.15}{}}
+\newlabel{eq:l56lif@cref}{{[equation][15][]15}{[1][12][]12}{}{}{}}
+\citation{florian2007,izhikevich2007,fremaux2016}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Spiking decision layer and online dopamine-gated eligibility}{13}{subsection.4.8}\protected@file@percent }
+\newlabel{eq:coincidence}{{16}{13}{Spiking decision layer and online dopamine-gated eligibility}{equation.16}{}}
+\newlabel{eq:coincidence@cref}{{[equation][16][]16}{[1][13][]13}{}{}{}}
+\newlabel{eq:decision_current}{{17}{13}{Spiking decision layer and online dopamine-gated eligibility}{equation.17}{}}
+\newlabel{eq:decision_current@cref}{{[equation][17][]17}{[1][13][]13}{}{}{}}
+\newlabel{eq:decision_argmax}{{18}{13}{Spiking decision layer and online dopamine-gated eligibility}{equation.18}{}}
+\newlabel{eq:decision_argmax@cref}{{[equation][18][]18}{[1][13][]13}{}{}{}}
+\newlabel{eq:eligibility}{{20}{13}{Spiking decision layer and online dopamine-gated eligibility}{equation.20}{}}
+\newlabel{eq:eligibility@cref}{{[equation][20][]20}{[1][13][]13}{}{}{}}
+\newlabel{eq:eligibility_tags}{{21}{13}{Spiking decision layer and online dopamine-gated eligibility}{equation.21}{}}
+\newlabel{eq:eligibility_tags@cref}{{[equation][21][]21}{[1][13][]13}{}{}{}}
+\newlabel{eq:dopamine}{{22}{13}{Spiking decision layer and online dopamine-gated eligibility}{equation.22}{}}
+\newlabel{eq:dopamine@cref}{{[equation][22][]22}{[1][13][]13}{}{}{}}
+\newlabel{eq:decision_update}{{24}{13}{Spiking decision layer and online dopamine-gated eligibility}{equation.24}{}}
+\newlabel{eq:decision_update@cref}{{[equation][24][]24}{[1][13][]13}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.9}Joint acquisition and fixation-gated plasticity}{13}{subsection.4.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.10}Causal ablations and readout controls}{13}{subsection.4.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.11}Bidirectional and prospective binding assays}{13}{subsection.4.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.12}Caltech Faces localization and detection}{13}{subsection.4.12}\protected@file@percent }
+\citation{clopper1934}
+\citation{mcnemar1947}
+\citation{efron1993}
+\bibstyle{unsrtnat}
+\bibdata{references}
+\bibcite{hubel1962}{{1}{1962}{{Hubel and Wiesel}}{{}}}
+\bibcite{spruston2008}{{2}{2008}{{Spruston}}{{}}}
+\bibcite{larkum2013}{{3}{2013}{{Larkum}}{{}}}
+\bibcite{hawkins2017}{{4}{2017}{{Hawkins et~al.}}{{Hawkins, Ahmad, and Cui}}}
+\bibcite{lewis2019}{{5}{2019}{{Lewis et~al.}}{{Lewis, Purdy, Ahmad, and Hawkins}}}
+\bibcite{hawkins2021}{{6}{2021}{{Hawkins}}{{}}}
+\bibcite{hafting2005}{{7}{2005}{{Hafting et~al.}}{{Hafting, Fyhn, Molden, Moser, and Moser}}}
+\bibcite{duhamel1992}{{8}{1992}{{Duhamel et~al.}}{{Duhamel, Colby, and Goldberg}}}
+\bibcite{najemnik2005}{{9}{2005}{{Najemnik and Geisler}}{{}}}
+\bibcite{gold2007}{{10}{2007}{{Gold and Shadlen}}{{}}}
+\bibcite{markram1997}{{11}{1997}{{Markram et~al.}}{{Markram, Lubke, Frotscher, and Sakmann}}}
+\bibcite{bi1998}{{12}{1998}{{Bi and Poo}}{{}}}
+\bibcite{song2000}{{13}{2000}{{Song et~al.}}{{Song, Miller, and Abbott}}}
+\bibcite{schultz1997}{{14}{1997}{{Schultz et~al.}}{{Schultz, Dayan, and Montague}}}
+\bibcite{florian2007}{{15}{2007}{{Florian}}{{}}}
+\bibcite{izhikevich2007}{{16}{2007}{{Izhikevich}}{{}}}
+\bibcite{fremaux2016}{{17}{2016}{{Fremaux and Gerstner}}{{}}}
+\bibcite{neftci2019}{{18}{2019}{{Neftci et~al.}}{{Neftci, Mostafa, and Zenke}}}
+\bibcite{roy2019}{{19}{2019}{{Roy et~al.}}{{Roy, Jaiswal, and Panda}}}
+\bibcite{gerstner2002}{{20}{2002}{{Gerstner and Kistler}}{{}}}
+\bibcite{vieth2024}{{21}{2024}{{Vieth et~al.}}{{Vieth, Rahimi, Gorgan~Mohammadi, Triesch, and Ganjtabesh}}}
+\bibcite{conex2026}{{22}{2026{}}{{Cognitive Neuroscience Research Laboratory}}{{}}}
+\bibcite{pymonntorch2026}{{23}{2026{}}{{Cognitive Neuroscience Research Laboratory}}{{}}}
+\bibcite{fei2006}{{24}{2006}{{Fei-Fei et~al.}}{{Fei-Fei, Fergus, and Perona}}}
+\bibcite{lecun1998}{{25}{1998}{{LeCun et~al.}}{{LeCun, Bottou, Bengio, and Haffner}}}
+\bibcite{oreilly2000}{{26}{2000}{{O'Reilly and Munakata}}{{}}}
+\bibcite{turrigiano1998}{{27}{1998}{{Turrigiano et~al.}}{{Turrigiano, Leslie, Desai, Rutherford, and Nelson}}}
+\bibcite{clopper1934}{{28}{1934}{{Clopper and Pearson}}{{}}}
+\bibcite{mcnemar1947}{{29}{1947}{{McNemar}}{{}}}
+\bibcite{efron1993}{{30}{1993}{{Efron and Tibshirani}}{{}}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces \textbf  {Main simulation parameters.}}}{14}{table.caption.14}\protected@file@percent }
+\newlabel{tab:params}{{2}{14}{\textbf {Main simulation parameters.}}{table.caption.14}{}}
+\newlabel{tab:params@cref}{{[table][2][]2}{[1][14][]14}{}{}{}}
+\newlabel{eq:detection_score}{{25}{14}{Caltech Faces localization and detection}{equation.25}{}}
+\newlabel{eq:detection_score@cref}{{[equation][25][]25}{[1][14][]14}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.13}Statistics}{14}{subsection.4.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.14}Parameter summary}{14}{subsection.4.14}\protected@file@percent }
+\gdef \@abspage@last{14}
