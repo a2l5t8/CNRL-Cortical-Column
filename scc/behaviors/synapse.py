@@ -1,530 +1,277 @@
-"""Custom behaviors attached to cortical-column synapse groups."""
-from __future__ import annotations
+"""Synapse behaviors the cortical column adds to CoNeX.
 
+Trials are simulated in batches: every population holds ``batch_size`` copies
+of its neurons, flattened trial-major, so CoNeX's element-wise, convolutional
+and pooling behaviors run unchanged. The behaviors below reshape to
+(batch, neurons) where they mix neurons across a connection.
+"""
 import torch
 import torch.nn.functional as F
-from pymonntorch import Behavior, SynapseGroup
+from conex.behaviors.synapses import BaseDendriticInput, BaseLearning
 
 __all__ = [
-    "MotorToL56Current",
-    "SpikingConvolutionInput",
-    "BatchedConv2dSTDP",
-    "L4ToL23PoolingInput",
-    "L56ApicalFeedbackInput",
-    "L23ToL56ReciprocalBindingInput",
-    "L56GatedDecisionInput",
-    "SpikeTimingEligibility",
-    "DelayedDopaminePlasticity",
+    "ReplayDendriticInput",
+    "DenseDendriticInput",
+    "PathIntegrationDendriticInput",
+    "FrameDendriticInput",
+    "FrameGatedDendriticInput",
+    "Conv2dWTASTDP",
+    "Outstar",
+    "GatedRSTDP",
 ]
 
 
-class MotorToL56Current(Behavior):
-    """Convert a location-vector pulse into sustained L5/6 input current."""
-
-    def initialize(self, synapse: SynapseGroup) -> None:
-        super().initialize(synapse)
-        synapse.current = torch.zeros(
-            1, synapse.dst.size, device=synapse.device, dtype=synapse.def_dtype
-        )
-        synapse.network.active_location_current = torch.zeros_like(
-            synapse.current
-        )
-
-    def forward(self, synapse: SynapseGroup) -> None:
-        pulse = synapse.src.spikes.to(synapse.def_dtype)
-        active_rows = pulse.amax(dim=1) > 0
-        if active_rows.any():
-            synapse.network.active_location_current[active_rows] = (
-                pulse[active_rows]
-                * float(synapse.network.cfg.l56_motor_gain)
-            )
-        synapse.current = synapse.network.active_location_current
+def _position(motor, b):
+    """Sensor position of each trial: the index of the spiking motor unit."""
+    return motor.spikes.view(b, -1).float().argmax(1)
 
 
-class SpikingConvolutionInput(Behavior):
-    """Convolve only sensory spike events into the L4 dendritic current."""
+class ReplayDendriticInput(BaseDendriticInput):
+    """Replay a recorded feed-forward current, e.g. the pooled L4 spikes of
+    one fixation recorded once from the sensory pathway (which receives no
+    feedback, so recording and replaying it is exact).
 
-    def __init__(self, kernels: torch.Tensor, *args, **kwargs) -> None:
-        super().__init__(*args, kernels=kernels, **kwargs)
-
-    def initialize(self, synapse: SynapseGroup) -> None:
-        super().initialize(synapse)
-        kernels = self.parameter("kernels", None, required=True).float().to(
-            synapse.device
-        )
-        synapse.raw_kernels = kernels.clone()
-        kernel_norm = synapse.raw_kernels.sum(
-            dim=(1, 2, 3), keepdim=True
-        ).clamp(min=1e-6)
-        synapse.kernels = synapse.raw_kernels / kernel_norm
-        synapse.current = torch.zeros(
-            1, synapse.dst.size, device=synapse.device, dtype=synapse.def_dtype
-        )
-
-    def forward(self, synapse: SynapseGroup) -> None:
-        net = synapse.network
-        if net.cortical_phase != "sensory":
-            synapse.current = torch.zeros_like(synapse.current)
-            return
-        spikes = synapse.src.spikes.to(synapse.def_dtype).reshape(
-            net.batch_size, 1, net.cfg.patch_size, net.cfg.patch_size
-        )
-        current = F.conv2d(spikes, synapse.kernels).clamp(min=0)
-        target = (net.cfg.feature_map_size, net.cfg.feature_map_size)
-        if current.shape[-2:] != target:
-            current = F.interpolate(
-                current, size=target, mode="bilinear", align_corners=False
-            )
-        synapse.current = current.reshape(net.batch_size, -1)
-
-
-class BatchedConv2dSTDP(Behavior):
-    """Local convolutional STDP for the batched raw-image L4 pathway.
-
-    Presynaptic sensory spikes are accumulated during the retinal phase. At
-    the first L4 release step, spatial winner competition identifies one
-    postsynaptic feature per receptive-field location. Only those naturally
-    emitted winner spikes modify their shared convolutional kernels.
+    Args:
+        source (str): Network attribute holding the current; None is silence.
     """
 
-    def __init__(
-        self,
-        *args,
-        learning_rate: float = 0.05,
-        a_plus: float = 1.0,
-        a_minus: float = 0.1,
-        homeostasis: float = 0.05,
-        **kwargs,
-    ) -> None:
-        super().__init__(
-            *args,
-            learning_rate=learning_rate,
-            a_plus=a_plus,
-            a_minus=a_minus,
-            homeostasis=homeostasis,
-            **kwargs,
-        )
+    def __init__(self, *args, source, current_coef=1, **kwargs):
+        super().__init__(*args, source=source, current_coef=current_coef, **kwargs)
 
-    def initialize(self, synapse: SynapseGroup) -> None:
+    def initialize(self, synapse):
         super().initialize(synapse)
-        self.learning_rate = float(self.parameter("learning_rate", 0.05))
-        self.a_plus = float(self.parameter("a_plus", 1.0))
-        self.a_minus = float(self.parameter("a_minus", 0.1))
-        self.homeostasis = float(self.parameter("homeostasis", 0.05))
-        synapse.stdp_pre_activity = torch.zeros(
-            1,
-            synapse.src.size,
-            device=synapse.device,
-            dtype=synapse.def_dtype,
-        )
-        synapse.stdp_pending = False
-        synapse.l4_win_count = torch.zeros(
-            int(synapse.network.n_l4_features),
-            device=synapse.device,
-            dtype=synapse.def_dtype,
-        )
-        synapse.l4_stdp_update_count = 0
-        synapse.network.l4_learning_enabled = False
+        self.source = self.parameter("source", None, required=True)
 
-    def forward(self, synapse: SynapseGroup) -> None:
-        net = synapse.network
-        if not getattr(net, "l4_learning_enabled", False):
-            return
+    def calculate_input(self, synapse):
+        current = getattr(synapse.network, self.source, None)
+        return synapse.I.new_zeros(synapse.dst.size) if current is None else current
 
-        if net.cortical_phase == "sensory":
-            spikes = synapse.src.spikes.to(synapse.def_dtype)
-            if tuple(synapse.stdp_pre_activity.shape) != tuple(spikes.shape):
-                synapse.stdp_pre_activity = torch.zeros_like(spikes)
-            synapse.stdp_pre_activity.add_(spikes)
-            synapse.stdp_pending = True
-            return
 
-        if net.cortical_phase != "l4_release" or not synapse.stdp_pending:
-            return
+class DenseDendriticInput(BaseDendriticInput):
+    """Fully connected dendrite: I = s @ W in each trial, W of shape (src, dst)."""
 
-        batch_size = int(net.batch_size)
-        n_features = int(net.n_l4_features)
-        n_positions = int(net.cfg.feature_map_size) ** 2
-        pre = synapse.stdp_pre_activity / max(int(net.cfg.sensory_steps), 1)
-        images = pre.reshape(
-            batch_size,
-            1,
-            int(net.cfg.patch_size),
-            int(net.cfg.patch_size),
-        )
-        kernel_size = tuple(int(value) for value in synapse.kernels.shape[-2:])
-        patches = F.unfold(images, kernel_size=kernel_size)
-        responses = F.conv2d(images, synapse.kernels).reshape(
-            batch_size,
-            n_features,
-            n_positions,
-        )
-        usage = synapse.l4_win_count / synapse.l4_win_count.sum().clamp(min=1.0)
-        scores = responses - self.homeostasis * usage[None, :, None]
-        winner_index = scores.argmax(dim=1)
-        winners = F.one_hot(winner_index, num_classes=n_features).permute(0, 2, 1)
-        post = synapse.dst.spikes.reshape(
-            batch_size,
-            n_features,
-            n_positions,
-        )
-        winners = winners.to(synapse.def_dtype) * post
-        counts = winners.sum(dim=(0, 2))
+    def calculate_input(self, synapse):
+        spikes = synapse.pre_spike.view(synapse.network.batch_size, -1)
+        return (spikes.to(synapse.weights.dtype) @ synapse.weights).view(-1)
+
+
+class _FrameInput(BaseDendriticInput):
+    """Base of the reference-frame dendrites.
+
+    Args:
+        frames (ReferenceFrames): Frame geometry (location table, object slots).
+        motor (NeuronGroup): Motor population; its spike gives the sensor position.
+    """
+
+    def __init__(self, *args, frames, motor, current_coef=1, **kwargs):
+        super().__init__(*args, frames=frames, motor=motor, current_coef=current_coef, **kwargs)
+
+    def initialize(self, synapse):
+        super().initialize(synapse)
+        self.frames = self.parameter("frames", None, required=True)
+        self.motor = self.parameter("motor", None, required=True)
+
+    def locations(self, synapse):
+        """Location index l = p - d of every anchor d at the current position p."""
+        b = synapse.network.batch_size
+        return self.frames.table[_position(self.motor, b)]  # (b, D)
+
+
+class PathIntegrationDendriticInput(_FrameInput):
+    """Hypotheses -> location units. Hypothesis (c, d) and sensor position p
+    drive location l = p - d of frame c (fixed conjunctive wiring): the anchor
+    stays put while movement changes the location."""
+
+    def calculate_input(self, synapse):
+        f, b = self.frames, synapse.network.batch_size
+        hyp = synapse.pre_spike.view(b, f.C, f.D).to(self.def_dtype)
+        loc = self.locations(synapse)[:, None, :].expand(-1, f.C, -1)
+        return hyp.new_zeros(b, f.C, f.L).scatter_add_(2, loc, hyp).view(-1)
+
+
+class FrameDendriticInput(_FrameInput):
+    """Reciprocal L2/3 -> hypothesis synapses. Hypothesis (c, d) receives the
+    log-likelihood that code x arose at location l = p - d of object c,
+        I = sum_f x_f log(A / (1 - A)) + sum_f log(1 - A),
+    with the log-odds in ``weights`` (C, L, F) and the second term in ``bias`` (C, L)."""
+
+    def calculate_input(self, synapse):
+        f, b = self.frames, synapse.network.batch_size
+        x = synapse.pre_spike.view(b, -1).to(self.def_dtype)
+        ll = torch.einsum("bf,clf->bcl", x, synapse.weights) + synapse.bias
+        return ll.gather(2, self.locations(synapse)[:, None, :].expand(-1, f.C, -1)).view(-1)
+
+
+class FrameGatedDendriticInput(_FrameInput):
+    """L2/3 -> decision synapses W (C, Q, F) over the Q on-object locations.
+
+    Decision unit (c, d) belongs to hypothesis (c, d): while that hypothesis
+    spikes, the unit integrates the code through the synapses of the object
+    location l = p - d it currently occupies (no input off the object).
+
+    Args:
+        hypotheses (NeuronGroup): The frame-hypothesis population gating the units.
+    """
+
+    def __init__(self, *args, hypotheses, **kwargs):
+        super().__init__(*args, hypotheses=hypotheses, **kwargs)
+
+    def initialize(self, synapse):
+        super().initialize(synapse)
+        self.hypotheses = self.parameter("hypotheses", None, required=True)
+
+    def calculate_input(self, synapse):
+        f, b = self.frames, synapse.network.batch_size
+        synapse.x = x = synapse.pre_spike.view(b, -1).to(self.def_dtype)
+        synapse.slot = f.slot[self.locations(synapse)]  # (b, D), -1 off the object
+        synapse.alive = self.hypotheses.spikes.view(b, f.C, f.D)
+        drive = torch.einsum("cqf,bf->bcq", synapse.weights, x)
+        drive = drive.gather(2, synapse.slot.clamp(min=0)[:, None, :].expand(-1, f.C, -1))
+        return (drive * ((synapse.slot >= 0)[:, None, :] & synapse.alive)).view(-1)
+
+
+class Conv2dWTASTDP(BaseLearning):
+    """Competitive spike-timing-dependent plasticity of convolutional kernels.
+
+    At each position only the feature whose membrane potential, less a
+    homeostatic penalty on its share of past wins, is largest may learn, and
+    only if it spiked (lateral inhibition across features). The winner's kernel
+    moves towards the presynaptic activity p of its receptive field (spikes per
+    sensory step) with soft bounds,
+        dw = lr * (a_plus * p * (1 - w) - a_minus * (1 - p) * w),
+    averaged over its winning positions. Raw weights stay in [0, 1]; the
+    dendrite sees them normalised to unit sum per kernel (synaptic scaling),
+    so ``weights`` should be initialised with the raw kernels.
+
+    Note: PreTrace(tau_s=inf) must accumulate the presynaptic spikes of the
+    sensory window, and PostSpikeCatcher must be added.
+
+    Args:
+        steps (int): Length of the sensory window.
+        lr (float): Learning rate.
+        a_plus (float): Potentiation coefficient.
+        a_minus (float): Depression coefficient.
+        homeostasis (float): Penalty per unit share of past wins.
+    """
+
+    def __init__(self, steps, *args, lr=0.05, a_plus=1.0, a_minus=0.1, homeostasis=0.05, **kwargs):
+        super().__init__(*args, steps=steps, lr=lr, a_plus=a_plus, a_minus=a_minus,
+                         homeostasis=homeostasis, **kwargs)
+
+    def initialize(self, synapse):
+        self.steps = self.parameter("steps", None, required=True)
+        self.lr = self.parameter("lr", 0.05)
+        self.a_plus = self.parameter("a_plus", 1.0)
+        self.a_minus = self.parameter("a_minus", 0.1)
+        self.homeostasis = self.parameter("homeostasis", 0.05)
+        if not hasattr(synapse, "wins"):
+            synapse.raw_weights = synapse.weights.clone()
+            synapse.wins = synapse.weights.new_zeros(synapse.weights.shape[0])
+            self.scale(synapse)
+
+    @staticmethod
+    def scale(synapse):
+        raw = synapse.raw_weights
+        synapse.weights = raw / raw.sum((1, 2, 3), keepdim=True).clamp(min=1e-6)
+
+    def forward(self, synapse):
+        n_features, b = synapse.weights.shape[0], synapse.network.batch_size
+        pre = synapse.pre_trace.view(synapse.src_shape) / self.steps
+        usage = synapse.wins / synapse.wins.sum().clamp(min=1.0)
+        score = F.conv2d(pre, synapse.weights).view(b, n_features, -1) - self.homeostasis * usage[None, :, None]
+        winners = F.one_hot(score.argmax(1), n_features).permute(0, 2, 1).to(pre.dtype)
+        winners = winners * synapse.post_spike.view(b, n_features, -1)
+        counts = winners.sum((0, 2))
+        patches = F.unfold(pre, synapse.weights.shape[-2:])
+        p = torch.einsum("bfp,bkp->fk", winners, patches) / counts[:, None].clamp(min=1.0)
+        w = synapse.raw_weights.view(n_features, -1)
+        dw = self.lr * (self.a_plus * p * (1 - w) - self.a_minus * (1 - p) * w)
         active = counts > 0
-        if active.any():
-            feature_patches = torch.einsum("bfp,bkp->fk", winners, patches)
-            feature_patches = feature_patches / counts[:, None].clamp(min=1.0)
-            weights = synapse.raw_kernels.reshape(n_features, -1)
-            potentiation = feature_patches * (1.0 - weights)
-            depression = (1.0 - feature_patches) * weights
-            delta = self.learning_rate * (
-                self.a_plus * potentiation - self.a_minus * depression
-            )
-            with torch.no_grad():
-                weights[active] = (
-                    weights[active] + delta[active]
-                ).clamp(0.0, 1.0)
-                norm = synapse.raw_kernels.sum(
-                    dim=(1, 2, 3), keepdim=True
-                ).clamp(min=1e-6)
-                synapse.kernels.copy_(synapse.raw_kernels / norm)
-                synapse.l4_win_count.add_(counts)
-            synapse.l4_stdp_update_count += int(active.sum().item())
-
-        synapse.stdp_pre_activity.zero_()
-        synapse.stdp_pending = False
+        w[active] = (w[active] + dw[active]).clamp(0.0, 1.0)
+        self.scale(synapse)
+        synapse.wins += counts
 
 
-class L4ToL23PoolingInput(Behavior):
-    """Pool L4 spikes into L2/3 proximal dendritic current."""
+class Outstar(BaseLearning):
+    """Outstar learning with an experience-dependent rate (Grossberg, 1976).
 
-    def initialize(self, synapse: SynapseGroup) -> None:
-        super().initialize(synapse)
-        synapse.current = torch.zeros(
-            1, synapse.dst.size, device=synapse.device, dtype=synapse.def_dtype
-        )
+    Whenever presynaptic unit i spikes, its outgoing weights move towards the
+    postsynaptic pattern x, w_ij <- w_ij + (x_j - w_ij) / n_i, where n_i counts
+    the spikes of i so far. w_ij converges to P(post j spikes | pre i spikes).
 
-    def forward(self, synapse: SynapseGroup) -> None:
+    Note: PreSpikeCatcher and PostSpikeCatcher should be added.
+    """
+
+    def initialize(self, synapse):
+        if not hasattr(synapse, "n"):
+            synapse.n = synapse.weights.new_zeros(synapse.weights.shape[0])
+
+    def forward(self, synapse):
+        b = synapse.network.batch_size
+        pre = synapse.pre_spike.view(b, -1).to(synapse.weights.dtype)
+        post = synapse.post_spike.view(b, -1).to(synapse.weights.dtype)
+        k = pre.sum(0)
+        synapse.n = synapse.n + k
+        synapse.weights += (pre.T @ post - k[:, None] * synapse.weights) / synapse.n.clamp(min=1)[:, None]
+
+
+class GatedRSTDP(BaseLearning):
+    """Three-factor plasticity of the frame-gated decision synapses.
+
+    Eligibility of one trial: a presynaptic tag e[q, f] = 1 once feature f
+    spiked while the active hypothesis occupied object location q, and a
+    postsynaptic tag of +1 on the unit that spiked while receiving apical
+    teaching input (the attended target) and -1 on the most active unit without
+    it (the strongest rival, singled out by lateral inhibition). The global
+    neuromodulator D (network.dopamine_concentration, one value per trial)
+    gates the change
+        dW[c, q, f] = lr * D * tag[c] * e[q, f] / max(1, ||e||).
+    Increases and decreases accumulate in separate excitatory and inhibitory
+    weights (Dale's principle), each bounded to [0, w_max].
+
+    Note: needs FrameGatedDendriticInput (gates), PostTrace(tau_s=inf) (spike
+    counts) and SimpleDendriteStructure on the decision units (apical input).
+
+    Args:
+        lr (float): Learning rate.
+        w_max (float): Bound of the excitatory and inhibitory weights.
+    """
+
+    def __init__(self, *args, lr=0.05, w_max=5.0, **kwargs):
+        super().__init__(*args, lr=lr, w_max=w_max, **kwargs)
+
+    def initialize(self, synapse):
+        self.lr = self.parameter("lr", 0.05)
+        self.w_max = self.parameter("w_max", 5.0)
+        if not hasattr(synapse, "w_exc"):
+            synapse.w_exc = synapse.weights.clone()
+            synapse.w_inh = torch.zeros_like(synapse.weights)
+        _, Q, n_features = synapse.weights.shape
+        synapse.eligibility = synapse.weights.new_zeros(synapse.network.batch_size, Q, n_features)
+
+    def forward(self, synapse):
         net = synapse.network
-        if net.cortical_phase != "l4_release":
-            synapse.current = torch.zeros_like(synapse.current)
+        b = net.batch_size
+        if getattr(synapse, "alive", None) is not None:
+            # Presynaptic tags at the object location of the active anchor.
+            anchor = synapse.alive.any(1).float().argmax(1)
+            q = synapse.slot.gather(1, anchor[:, None]).squeeze(1)
+            on = q >= 0
+            synapse.eligibility[on, q[on]] = torch.maximum(synapse.eligibility[on, q[on]], synapse.x[on])
+            synapse.anchor = anchor
+            synapse.alive = None
+        D = net.dopamine_concentration
+        if not torch.is_tensor(D) or not D.any():
             return
-        spikes = synapse.src.spikes.to(synapse.def_dtype).reshape(
-            net.batch_size,
-            net.n_l4_features,
-            net.cfg.feature_map_size,
-            net.cfg.feature_map_size,
-        )
-        pooled = F.adaptive_avg_pool2d(
-            spikes, (net.cfg.pool_grid_size, net.cfg.pool_grid_size)
-        )
-        synapse.current = pooled.reshape(net.batch_size, -1)
-
-
-class L56ApicalFeedbackInput(Behavior):
-    """Learned L5/6-to-L2/3 apical synapses driven by live L5/6 spikes."""
-
-    def initialize(self, synapse: SynapseGroup) -> None:
-        super().initialize(synapse)
-        net = synapse.network
-        expected = (synapse.src.size, synapse.dst.size)
-        if getattr(synapse, "weights", None) is None:
-            synapse.weights = torch.zeros(
-                expected,
-                device=synapse.device,
-                dtype=synapse.def_dtype,
-            )
-        elif tuple(synapse.weights.shape) != expected:
-            raise ValueError(
-                f"apical weights must have shape {expected}, got "
-                f"{tuple(synapse.weights.shape)}"
-            )
-        synapse.current = torch.zeros(
-            1, synapse.dst.size, device=synapse.device, dtype=synapse.def_dtype
-        )
-        synapse.pre_trace = torch.zeros(
-            1, synapse.src.size, device=synapse.device, dtype=synapse.def_dtype
-        )
-        synapse.post_trace = torch.zeros(
-            1, synapse.dst.size, device=synapse.device, dtype=synapse.def_dtype
-        )
-        net.apical_learning_enabled = True
-
-    def forward(self, synapse: SynapseGroup) -> None:
-        net = synapse.network
-        l56 = synapse.src.spikes.to(synapse.def_dtype)
-        synapse.current = F.linear(l56, synapse.weights.T)
-
-        if not net.apical_learning_enabled or net.cortical_phase != "decision":
-            return
-        l23 = synapse.dst.spikes.to(synapse.def_dtype)
-        pre_decay = torch.exp(
-            torch.tensor(-1.0 / 8.0, device=synapse.device)
-        )
-        post_decay = torch.exp(
-            torch.tensor(-1.0 / 8.0, device=synapse.device)
-        )
-        synapse.pre_trace = pre_decay * synapse.pre_trace + l56
-        synapse.post_trace = post_decay * synapse.post_trace + l23
-        dw = torch.einsum("bl,bf->lf", synapse.pre_trace, l23)
-        dw = dw / max(int(net.batch_size), 1)
-        with torch.no_grad():
-            synapse.weights.mul_(1.0 - float(net.cfg.apical_decay))
-            synapse.weights.add_(float(net.cfg.apical_learning_rate) * dw)
-
-
-class L23ToL56ReciprocalBindingInput(Behavior):
-    """Learned L2/3-to-L5/6 synapses for feature-to-frame retrieval."""
-
-    def initialize(self, synapse: SynapseGroup) -> None:
-        super().initialize(synapse)
-        expected = (synapse.dst.size, synapse.src.size)
-        if getattr(synapse, "weights", None) is None:
-            synapse.weights = torch.zeros(
-                expected,
-                device=synapse.device,
-                dtype=synapse.def_dtype,
-            )
-        elif tuple(synapse.weights.shape) != expected:
-            raise ValueError(
-                f"reciprocal weights must have shape {expected}, got "
-                f"{tuple(synapse.weights.shape)}"
-            )
-        synapse.current = torch.zeros(
-            1, synapse.dst.size, device=synapse.device, dtype=synapse.def_dtype
-        )
-        synapse.pre_trace = torch.zeros(
-            1, synapse.src.size, device=synapse.device, dtype=synapse.def_dtype
-        )
-        synapse.post_trace = torch.zeros(
-            1, synapse.dst.size, device=synapse.device, dtype=synapse.def_dtype
-        )
-        synapse.update_count = 0
-        synapse.network.reciprocal_learning_enabled = False
-        synapse.network.reciprocal_current_enabled = True
-
-    def forward(self, synapse: SynapseGroup) -> None:
-        net = synapse.network
-        l23 = synapse.src.spikes.to(synapse.def_dtype)
-        synapse.current = F.linear(l23, synapse.weights)
-
-        if (
-            not getattr(net, "reciprocal_learning_enabled", False)
-            or net.cortical_phase != "decision"
-        ):
-            return
-        l56 = synapse.dst.spikes.to(synapse.def_dtype)
-        trace_decay = torch.exp(
-            torch.tensor(
-                -1.0 / float(net.cfg.reciprocal_trace_tau),
-                device=synapse.device,
-            )
-        )
-        synapse.pre_trace = trace_decay * synapse.pre_trace + l23
-        synapse.post_trace = trace_decay * synapse.post_trace + l56
-        dw = torch.einsum("bl,bf->lf", l56, synapse.pre_trace)
-        dw = dw / max(int(net.batch_size), 1)
-        with torch.no_grad():
-            synapse.weights.mul_(1.0 - float(net.cfg.reciprocal_decay))
-            synapse.weights.add_(float(net.cfg.reciprocal_learning_rate) * dw)
-        synapse.update_count += int(l56.sum().item())
-
-
-class L56GatedDecisionInput(Behavior):
-    """Coincidence-gated synapses from L2/3 and L5/6 to decision neurons."""
-
-    def initialize(self, synapse: SynapseGroup) -> None:
-        super().initialize(synapse)
-        net = synapse.network
-        shape = (synapse.dst.size, net.n_locations, synapse.src.size)
-        generator = torch.Generator(device=synapse.device).manual_seed(
-            int(net.cfg.random_state)
-        )
-        initial = torch.rand(
-            shape,
-            generator=generator,
-            device=synapse.device,
-            dtype=synapse.def_dtype,
-        ) * 1e-3
-        synapse.excitatory_weights = initial
-        synapse.inhibitory_weights = torch.zeros_like(initial)
-        synapse.current = torch.zeros(
-            1, synapse.dst.size, device=synapse.device, dtype=synapse.def_dtype
-        )
-
-    @property
-    def weights(self) -> torch.Tensor:
-        raise AttributeError("Access effective weights through the synapse instance")
-
-    def forward(self, synapse: SynapseGroup) -> None:
-        net = synapse.network
-        if net.cortical_phase != "decision":
-            synapse.current = torch.zeros_like(synapse.current)
-            net.gated_pre_spikes = torch.zeros(
-                net.batch_size,
-                net.n_locations,
-                synapse.src.size,
-                device=synapse.device,
-                dtype=synapse.def_dtype,
-            )
-            return
-        l23 = synapse.src.spikes.to(synapse.def_dtype)
-        l56 = net.l56_ng.spikes.to(synapse.def_dtype)
-        gated = l56.unsqueeze(2) * l23.unsqueeze(1)
-        net.gated_pre_spikes = gated
-        effective = synapse.excitatory_weights - synapse.inhibitory_weights
-        synapse.current = (
-            torch.einsum("blf,clf->bc", gated, effective)
-            * float(net.cfg.decision_synaptic_gain)
-        )
-
-
-class SpikeTimingEligibility(Behavior):
-    """Class-specific eligibility built during the original free decision."""
-
-    def initialize(self, synapse: SynapseGroup) -> None:
-        super().initialize(synapse)
-        net = synapse.network
-        synapse.pre_trace = torch.zeros(
-            1,
-            net.n_locations,
-            synapse.src.size,
-            device=synapse.device,
-            dtype=synapse.def_dtype,
-        )
-        synapse.post_trace = torch.zeros(
-            1, synapse.dst.size, device=synapse.device, dtype=synapse.def_dtype
-        )
-        # The synapse-specific field is represented in factored form to avoid
-        # materializing batch x class x location x feature tensors. Their
-        # product at outcome time is the same free-trial pre/post eligibility.
-        synapse.eligibility = torch.zeros(
-            1,
-            net.n_locations,
-            synapse.src.size,
-            device=synapse.device,
-            dtype=synapse.def_dtype,
-        )
-        synapse.post_eligibility = torch.zeros(
-            1,
-            synapse.dst.size,
-            device=synapse.device,
-            dtype=synapse.def_dtype,
-        )
-
-    def forward(self, synapse: SynapseGroup) -> None:
-        net = synapse.network
-        if (
-            net.cortical_phase != "decision"
-            or not getattr(net, "eligibility_enabled", True)
-        ):
-            return
-        pre = net.gated_pre_spikes
-        post = synapse.dst.spikes.to(synapse.def_dtype)
-        pre_decay = torch.exp(
-            torch.tensor(
-                -1.0 / float(net.cfg.eligibility_tau_pre),
-                device=synapse.device,
-            )
-        )
-        post_decay = torch.exp(
-            torch.tensor(
-                -1.0 / float(net.cfg.eligibility_tau_post),
-                device=synapse.device,
-            )
-        )
-        eligibility_decay = torch.exp(
-            torch.tensor(
-                -1.0 / float(net.cfg.eligibility_tau),
-                device=synapse.device,
-            )
-        )
-        synapse.pre_trace = pre_decay * synapse.pre_trace + pre
-        synapse.post_trace = post_decay * synapse.post_trace + post
-        # Every decision assembly fires only according to its own LIF state.
-        # Feature and postsynaptic factors are combined only when the delayed
-        # outcome arrives; no target or competitor spike is imposed.
-        synapse.eligibility = (
-            eligibility_decay * synapse.eligibility + pre
-        )
-        synapse.post_eligibility = (
-            eligibility_decay * synapse.post_eligibility
-            + post
-        )
-
-
-class DelayedDopaminePlasticity(Behavior):
-    """Apply outcome modulation to free-trial class eligibility traces."""
-
-    def initialize(self, synapse: SynapseGroup) -> None:
-        super().initialize(synapse)
-        synapse.dopamine = torch.tensor(
-            0.0, device=synapse.device, dtype=synapse.def_dtype
-        )
-        synapse.dopamine_abs = torch.tensor(
-            0.0, device=synapse.device, dtype=synapse.def_dtype
-        )
-        synapse.update_count = 0
-
-    def forward(self, synapse: SynapseGroup) -> None:
-        net = synapse.network
-        if net.cortical_phase != "dopamine":
-            return
-        pulse = net.dopamine_pulse.to(synapse.device, dtype=synapse.def_dtype)
-        mask = net.dopamine_mask.to(synapse.device, dtype=synapse.def_dtype)
-        if pulse.ndim != 2 or pulse.shape[1] != synapse.dst.size:
-            raise ValueError(
-                "dopamine_pulse must have shape (batch, decision classes)"
-            )
-        update = torch.zeros_like(synapse.excitatory_weights)
-        learning_rate = float(net.cfg.decision_learning_rate)
-        for class_index in range(synapse.dst.size):
-            active = (mask > 0) & (pulse[:, class_index] != 0)
-            if not active.any():
-                continue
-            # A local biochemical eligibility tag saturates after at least one
-            # natural pre/post coincidence in the free trial. This prevents
-            # tonic firing-rate differences from masquerading as stronger
-            # credit while retaining strictly spike-dependent eligibility.
-            selected = (
-                (
-                    synapse.eligibility[active]
-                    > float(net.cfg.eligibility_threshold)
-                ).to(synapse.def_dtype)
-                * (
-                    synapse.post_eligibility[
-                        active, class_index, None, None
-                    ] > float(net.cfg.eligibility_threshold)
-                ).to(synapse.def_dtype)
-            )
-            norm = selected.square().sum(
-                dim=(1, 2),
-                keepdim=True,
-            ).sqrt()
-            selected = selected / norm.clamp(min=1.0)
-            signed = (
-                learning_rate
-                * pulse[active, class_index, None, None]
-                * selected
-            )
-            update[class_index] = signed.sum(dim=0)
-        with torch.no_grad():
-            turnover = max(
-                0.0,
-                1.0 - float(net.cfg.decision_weight_decay),
-            )
-            synapse.excitatory_weights.mul_(turnover)
-            synapse.inhibitory_weights.mul_(turnover)
-            positive = update.clamp(min=0)
-            negative = (-update).clamp(min=0)
-            synapse.excitatory_weights.add_(positive)
-            synapse.inhibitory_weights.add_(negative)
-            synapse.excitatory_weights.clamp_(0.0, float(net.cfg.weight_max))
-            synapse.inhibitory_weights.clamp_(0.0, float(net.cfg.weight_max))
-        synapse.dopamine = (
-            synapse.dopamine
-            - synapse.dopamine / float(net.cfg.dopamine_tau)
-            + pulse.mean()
-        )
-        synapse.dopamine_abs = pulse.abs().mean()
-        synapse.update_count += int(mask.sum().item())
+        C = synapse.weights.shape[0]
+        idx = synapse.anchor[:, None, None].expand(-1, C, 1)
+        counts = synapse.post_trace.view(b, C, -1).gather(2, idx).squeeze(2)
+        taught = synapse.dst.I_apical.view(b, C, -1).gather(2, idx).squeeze(2) > 0
+        rival = counts.masked_fill(taught, -torch.inf).argmax(1)
+        tag = (taught & (counts > 0)).to(counts.dtype)
+        tag[torch.arange(b), rival] -= (counts.gather(1, rival[:, None]).squeeze(1) > 0).to(counts.dtype)
+        e = synapse.eligibility / synapse.eligibility.flatten(1).norm(dim=1).clamp(min=1)[:, None, None]
+        dw = self.lr * torch.einsum("b,bc,bqf->cqf", D, tag, e)
+        synapse.w_exc = (synapse.w_exc + dw.clamp(min=0)).clamp(0, self.w_max)
+        synapse.w_inh = (synapse.w_inh + (-dw).clamp(min=0)).clamp(0, self.w_max)
+        synapse.weights = synapse.w_exc - synapse.w_inh

@@ -1,7 +1,6 @@
 """Shared pytest fixtures."""
 import pytest
 import torch
-import numpy as np
 
 from scc.config import Config
 from scc.utils import seed_everything

@@ -10,7 +10,6 @@ from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import transforms
 
 from conex.helpers.transforms.misc import SqueezeTransform
-from conex.helpers.transforms.encoders import SimplePoisson
 
 from scc.config import Config
 from scc.data.filters import apply_dog, build_dog_kernel
@@ -84,29 +83,6 @@ def build_transform(cfg: Config) -> Callable:
         ),
         SqueezeTransform(dim=0),   # remove channel → (H, W)
     ])
-
-
-# ── Poisson encoder ───────────────────────────────────────────────────────
-
-def encode_patch(patch: torch.Tensor, time_window: int, ratio: float) -> torch.Tensor:
-    """Poisson-encode a 2-D patch to a binary spike train.
-
-    Parameters
-    ----------
-    patch : torch.Tensor
-        Shape ``(H, W)`` in [0, 1].
-    time_window : int
-        Number of timesteps.
-    ratio : float
-        Firing-probability scaling factor.
-
-    Returns
-    -------
-    torch.Tensor
-        Bool tensor shape ``(time_window, H, W)``.
-    """
-    encoder = SimplePoisson(time_window=time_window, ratio=ratio)
-    return encoder(patch)
 
 
 # ── Caltech-101 subset ────────────────────────────────────────────────────

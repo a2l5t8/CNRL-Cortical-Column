@@ -1,1 +1,1 @@
-"""Data pipeline: DoG filters, saccade generator, Poisson encoding."""
+"""Datasets and the DoG retina transform."""

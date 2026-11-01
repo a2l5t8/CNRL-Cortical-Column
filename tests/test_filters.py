@@ -1,6 +1,5 @@
 """Tests for DoG filter: zero-mean kernel, edge enhancement."""
 import torch
-import pytest
 from PIL import Image
 
 from scc.config import Config
