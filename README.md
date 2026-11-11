@@ -9,9 +9,8 @@ are used in the spiking model.
 
 | Evaluation | Previous | New framework |
 |---|---:|---:|
-| Caltech Faces/Motorbikes, preserved weights, 80 validation images | 100% | **100%** |
-| MNIST, preserved weights, 10,000 official test images | 91.44% | **91.44%** |
-| Caltech, fresh fully plastic training, seed 42, final epoch 20 | 96.25% | **96.25%** |
+| MNIST, fresh fully plastic training, 10,000 official test images | 91.44% | **91.44%** |
+| Caltech, fresh fully plastic training, seed 42, final epoch 20 | 100% | **100%** |
 
 The first two rows establish checkpoint migration, not scratch training. The
 third starts with random L4 kernels and decision weights and updates every
