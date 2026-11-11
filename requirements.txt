@@ -1,1 +1,12 @@
-pymonntorch
+# Framework distributions used in the validated runtime.
+cnrl-conex==0.1.5
+pymonntorch==0.1.4
+torch==2.9.1
+torchvision==0.24.1
+numpy
+scipy
+scikit-learn
+matplotlib
+pillow
+pytest
+ipykernel

@@ -1,1 +1,6 @@
-MNIST/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+/data/
+/outputs/**/*.pt

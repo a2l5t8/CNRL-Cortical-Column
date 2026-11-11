@@ -1,0 +1,68 @@
+{
+  "dataset": "caltech",
+  "config": {
+    "classes": 2,
+    "maps": 2,
+    "kernel_size": 5,
+    "pool": 2,
+    "winners": 5,
+    "sensory_steps": 32,
+    "decision_steps": 64,
+    "learning_rate": 0.003,
+    "noise": 0.003,
+    "decision_gain": null,
+    "seed": 42,
+    "device": "cuda"
+  },
+  "n_train": 8,
+  "n_validation": 4,
+  "history": [
+    {
+      "epoch": 1,
+      "training_accuracy": 0.125,
+      "validation_accuracy": 0.25
+    }
+  ],
+  "final_accuracy": 0.25,
+  "predictions": [
+    1,
+    1,
+    1,
+    1
+  ],
+  "labels": [
+    0,
+    0,
+    1,
+    0
+  ],
+  "seconds": 3.368990659713745,
+  "complete": true,
+  "source_sha256": {
+    "column\\bridges.py": "09fc0708d4df3f36680a04307beda52b76c5f8e95a6c6ab18a1d03e52b4dba3c",
+    "column\\cellular.py": "906dfcaeaf47be43c99affcdfcd0f183e03afda49d816559ca7aa936721d2d7d",
+    "column\\context.py": "bc7aae4cb5c20e68d89a37378be4957190f1e27e75c811de9e6c3a667916fc03",
+    "column\\convert.py": "ecc0799da2ff1be6c371205c7dd3cd6cd0b8820265696ca888a011abf3f445cb",
+    "column\\decision.py": "1f379369fdc317c25b1077b6439744ec903e8e579ae221e89968579c2611c0e1",
+    "column\\evaluate.py": "7168b17e24ee8d3c377e16665791d6e6426f52238c30fcd7a570851bfd41bfc5",
+    "column\\model.py": "ef928d0bd52afbb4373ae01bd6b4112702067f3ce43f517f25325d3e9cd68cc7",
+    "column\\sensory.py": "8fb90ecc86e7b67dbf5b1f7475105d6b04bc4a2a447de4245da6d8d7ecc78ab1",
+    "column\\simulation.py": "1c312f99b9cfc65210952fe05c8655f6ce5288ba9729433939cfbe6091c33932",
+    "column\\test_port.py": "39bd1842489b4238eb126d7d6005778b6d74e6365d17ce9ce7a163ef16fe6705",
+    "column\\train.py": "959832afa5494ecc434d451fa79e75c3fbd4ebc136407c20f2a513a70aa86e2d",
+    "column\\__init__.py": "d376d85117fb420e61b04a124ade43d758b68ef31e8e993dfda06d6afeb70d8b",
+    "column\\data\\config.py": "75139bca8058be4ef4e6eb1571de22551d76dc60b5057e7887f9c47442b084f8",
+    "column\\data\\filters.py": "20788ff9fe084cc77535f4c8e77010f9e00d31323b4f5ea807626d4939df6345",
+    "column\\data\\pipeline.py": "f55f9813f860368988a24e711f10e10a071fd76c10249054aae248ce4b3ff290",
+    "column\\data\\__init__.py": "34f8db8d58983761a2ae0affcbb5532dcacb7e6ab89015d39254b4b984d9827f"
+  },
+  "frame_anchor": [
+    0,
+    0
+  ],
+  "plasticity": [
+    "l4",
+    "bindings",
+    "decision"
+  ]
+}

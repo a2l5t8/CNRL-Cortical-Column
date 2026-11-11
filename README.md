@@ -1,104 +1,148 @@
-# Cortical Column Simulation Using SNNs  
-**Computational Neuroscience Research Lab (CNRL)**  
-University of Tehran  
+# Spiking cortical column
 
-This repository implements a biologically plausible **Cortical Column** using Spiking Neural Networks (SNNs), inspired by the *Thousand Brains Theory of Intelligence* by Jeff Hawkins. The project was developed using **CoNeX**, a framework designed by CNRL for building SNNs based on PyTorch.
+One CoNeX/PymoNNtorch graph with explicit `L4`, `L23`, `L56` and `DecisionLayer`
+classes. All dynamics and plasticity execute in framework behaviors. No Layer
+containers, GatedRSTDP, Outstar, decision teacher currents or gradient training
+are used in the spiking model.
 
----
+## Verified results
 
-## Overview  
+| Evaluation | Previous | New framework |
+|---|---:|---:|
+| Caltech Faces/Motorbikes, preserved weights, 80 validation images | 100% | **100%** |
+| MNIST, preserved weights, 10,000 official test images | 91.44% | **91.44%** |
+| Caltech, fresh fully plastic training, seed 42, final epoch 20 | 96.25% | **96.25%** |
 
-### Cortical Column Architecture  
-The simulated Cortical Column (CC) consists of three main components:  
-1. **Layer 56 (L56)**: Encodes location information as *Reference Frames*.  
-2. **Layer 4 and Layer 23 (L423)**: Encodes sensory input.  
-3. **Fully Connected Layer (FC)**: Facilitates decision-making by integrating processed information.  
+The first two rows establish checkpoint migration, not scratch training. The
+third starts with random L4 kernels and decision weights and updates every
+plastic pathway throughout training. Fresh MNIST training is not claimed.
+These are known-position 3Ã—3 classification benchmarks; shifted-object
+localization has not been revalidated in this cleaned entrypoint.
 
-### Key Features  
-- **Biologically plausible design** of the Cortical Column.  
-- **Hierarchical structure** with specialized roles for each layer.  
-- Built using **CoNeX**, a custom framework for SNN development in PyTorch.  
-- Modular design for easy experimentation and extensibility.  
+See [the diagram and equations](docs/architecture.md) and
+[validation/provenance](docs/validation.md).
 
----
+## Run
 
-## Repository Structure  
+Use `requirements.txt` with a CUDA-enabled PyTorch installation. From this directory:
 
-```
-├── /src  
-│   ├── /L423            # Layer 4 and Layer 23: Sensory input encoding  
-│   │   ├── /synapse     # Synapse-related definitions and implementations  
-│   │   ├── /neurons     # Neuron models for L423  
-│   │   ├── /network     # Layer-specific network configuration  
-│   │   ├── /tools       # Utility functions and tools for L423  
-│   │   ├── run_model.py # Script to run the L423 model  
-│   │   ├── test_L423.ipynb # Jupyter Notebook for testing  
-│   ├── /L56             # Layer 56: Location encoding  
-│   │   ├── /synapse  
-│   │   ├── /neurons  
-│   │   ├── /network  
-│   │   ├── /tools  
-│   │   ├── run_model.py  
-│   │   ├── test_L56.ipynb  
-│   ├── /FC              # Fully Connected layer: Decision-making  
-│   │   ├── /synapse  
-│   │   ├── /neurons  
-│   │   ├── /network  
-│   │   ├── /tools  
-│   │   ├── run_model.py  
-│   │   ├── test_FC.ipynb  
-├── README.md            # Project documentation  
+```powershell
+python -m pytest tests -q
+python -m column.train --dataset caltech --epochs 20 --seed 42 --output outputs/my_caltech_run
+python -m column.evaluate outputs/framework_converted_caltech/model.pt
+python -m column.evaluate outputs/framework_converted_mnist_test/model.pt --dataset mnist --official-test
 ```
 
----
+Training writes `model.pt` and `metrics.json`, with the full learning curve,
+final predictions, labels and source hashes. Evaluation writes `evaluation.json`
+and verifies that learned weights remain unchanged.
 
-## Installation  
+```python
+from column import Column, Config
 
-1. Clone the repository:  
-   ```bash
-   git clone https://github.com/a2l5t8/CNRL-Cortical-Column.git
-   cd CNRL-Cortical-Column
-   ```
+model = Column(Config(maps=25, kernel_size=11, pool=5))
+model.net.initialize(info=False, warnings=False)
+history = model.train(images, labels, epochs=20, batch_size=32)
+prediction = model.predict(images)  # CPU class indices; no learning
+model.save("model.pt")
+restored = Column.load("model.pt")
+```
 
-2. Install dependencies:  
-   ```bash
-   pip install -r requirements.txt
-   ```  
+Inputs are batches of preprocessed 80Ã—80 rate images. Training labels supply
+only the authorized reference-frame binding cue and the external scalar reward.
+They do not enter the decision-learning rule.
 
-3. Install **CoNeX** framework (refer to its [documentation](https://github.com/cnrl)).  
+All stages are plastic by default. Use `model.plasticity(('l4',))`,
+`('bindings',)` or `('decision',)` to select a stage; `model.plasticity()` enables
+all three. Sensory, binding and decision phases are scheduled separately:
+all plastic pathways update on arriving training batches, not simultaneously
+during every phase.
 
----
+## Feature-map notebook
 
-## Usage  
+[notebooks/feature_map_sweep.ipynb](notebooks/feature_map_sweep.ipynb) includes
+imports, data setup, fresh full training, accuracy, CSV output and visualization.
+Every code cell was executed with a small smoke configuration; the default full
+sweep was not run.
 
-1. **Test the model**:  
-   Navigate to the relevant layer folder (e.g., `/L423`) and run the corresponding `.ipynb` file to test the model's behavior.  
+- `FEATURE_COUNTS` / CLI `--maps`: number of learned L4 kernels.
+- `KERNEL_SIZES` / `--kernel`: spatial widths, e.g. `[7, 11, 15]`.
+- `POOL_SIDES` / `--pool`: pooled map widths, e.g. `[3, 5, 7]`.
+- `SEEDS`, `EPOCHS` / `--seed`, `--epochs`: initialization and training duration.
 
-2. **Run the model**:  
-   Use the `run_model.py` script in each layer folder to execute the simulations. For example:  
-   ```bash
-   python src/L423/run_model.py
-   ```
+Nine fixed saccades use 35Ã—35 glimpses. L2/3 has `maps Ã— poolÂ²` neurons. Each
+configuration learns new features rather than resizing a frozen feature bank.
 
-3. **Modify behaviors**:  
-   Each layer contains `synapse`, `neurons`, `network`, and `tools` folders, allowing modular customization of behaviors.  
+## Code
 
----
+- `column/Column.py`: shared network, interlayer wiring, `train`, `predict`, checkpoints.
+- `column/L4.py`: retinal input, convolutional L4 and pooling.
+- `column/L23.py`: feature population.
+- `column/L56.py`: reference-frame population and sensorimotor relays.
+- `column/DecisionLayer.py`: excitatory/inhibitory decision circuit.
+- `column/behavior/neurons.py`: neuron-group behaviors.
+- `column/behavior/synapse.py`: transmission and synaptic learning behaviors.
+- `column/behavior/network.py`: network-level reward behavior.
+- `column/behavior/specs.py`: current-trial activity storage specs.
+- `column/simulation.py`: shared simulation scheduling helpers.
+- `column/data/`: splits and DoG preprocessing.
+- `column/train.py`, `evaluate.py`: canonical training/evaluation.
+- `column/convert.py`: explicit migration of archived weights, not training.
+- `baseline/cnn.py`: independent convolution + pooling + MLP benchmark.
 
-## Contributions  
+Legacy code and artifacts were moved intact to `../claude_retired_2026-11-09/`.
+Its `data` junction points to this directory's shared dataset. Earlier winning
+model backups also remain intact.
 
-This project is an ongoing effort by the **Computational Neuroscience Research Lab (CNRL)** at the **University of Tehran**. Contributions are welcome!  
+Every layer requires a `net` argument; `Column` supplies the same network to all
+four. `train` returns a list of epoch metrics and accepts `validation_data=(x, y)`.
+Initialization is automatic in `train` and `predict`, or explicit with
+`model.initialize()`. Checkpoints preserve weights, reward baseline, random
+states and training history. Existing framework checkpoints remain loadable.
+The previous source layout is preserved in `../claude_before_layout_refactor_2026-11-10/`.
 
-- Submit bug reports and feature requests via the [Issues](https://github.com/a2l5t8/CNRL-Cortical-Column/issues) page.  
-- Fork the repository and create pull requests for enhancements or fixes.  
+## Grid and kernel sweep
 
----
+From the repository root, run the same command on all four machines and give
+each machine a different shard number (1 through 4):
 
-## References  
+```powershell
+python -m sweep --shards 4 --shard 1 --grids 2 3 4 5 6 7 --kernels 3 5 7 9 11
+```
 
-- **Jeff Hawkins** - *A Thousand Brains: A New Theory of Intelligence*  
-- **CoNeX Framework** - [CoNeX GitHub Repository](https://github.com/cnrl)  
+With four shards, shard 1 is the server and gets 120 of the 240 default runs.
+Shards 2–4 are the laptops and get 40 each. The planner also balances estimated
+compute in those proportions. Run IDs stay the same, so gather existing JSON
+results into each machine's output directory before resuming under this split.
 
----
+The default plan uses seed 42. It crosses six
+grid sides, five kernel widths, both datasets, and four modes. A grid side of 7
+means 49 fixations. Both model families see the same preprocessed crops, with
+widths 52, 35, 26, 21, 18, and 15 pixels for the default grids. A kernel must
+fit the smallest selected crop. Pooling stays at 5 by 5 in both model families.
 
-Happy Coding!
+- `spiking_rf` uses the grid-specific L5/6 frames, reciprocal STDP, and
+  location-bound decision input. `spiking_no_rf` removes L5/6 and uses a
+  shared feature-to-decision readout at every fixation. Both train L4 and
+  the decision synapse from scratch using STDP and R-STDP.
+- `cnn_location` concatenates patch features in fixation order.
+  `cnn_no_location` averages the same patch features across fixations.
+
+Use `--dry-run` to preview assignments. Keep the sweep options identical
+across machines except for `--shard`, device, and output path. For manual
+assignment, use `--shards 1` and give each machine a different subset using
+`--grids`, `--kernels`, `--datasets`, or `--modes`. Use `--epochs`,
+`--seeds`, `--batch-size`, and `--cnn-batch-size` to set training parameters.
+
+Every finished run writes its own JSON file under
+`outputs/grid_kernel_sweep/` (or `--output`), including final validation
+accuracy, per-epoch history, and run settings. Relaunch the same command in
+the same output directory after an interruption. It skips completed runs
+and restarts the interrupted configuration from its seed. Copy the JSON files
+from all four machines into one directory to collect the results. Run IDs
+include the settings and are independent of shard number.
+
+To try a small run first, use `--shards 1 --grids 3 --kernels 5 --datasets caltech
+--epochs 1 --train-limit 8 --val-limit 4 --output outputs/sweep_smoke`.
+The full sweep uses the existing validation splits (80 Caltech images and
+5,000 MNIST images by default).

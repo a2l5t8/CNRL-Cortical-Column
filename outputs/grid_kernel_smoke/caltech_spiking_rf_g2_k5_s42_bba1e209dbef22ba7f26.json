@@ -1,0 +1,29 @@
+{
+  "job": {
+    "protocol": 1,
+    "dataset": "caltech",
+    "grid": 2,
+    "kernel": 5,
+    "crop": 52,
+    "mode": "spiking_rf",
+    "seed": 42,
+    "epochs": 1,
+    "batch_size": 2,
+    "train_limit": 4,
+    "val_limit": 2
+  },
+  "status": "complete",
+  "accuracy": 1.0,
+  "history": [
+    {
+      "epoch": 1,
+      "training_accuracy": 0.5,
+      "validation_accuracy": 1.0
+    }
+  ],
+  "n_train": 4,
+  "n_validation": 2,
+  "device": "cuda",
+  "torch_version": "2.9.1+cu126",
+  "seconds": 1.9545198999694549
+}

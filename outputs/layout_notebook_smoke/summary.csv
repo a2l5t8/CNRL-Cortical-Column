@@ -1,0 +1,2 @@
+dataset,maps,kernel,pool,seed,l23_neurons,accuracy,n_validation,checkpoint
+caltech,2,5,2,42,8,0.25,4,outputs\layout_notebook_smoke\caltech_maps2_kernel5_pool2_seed42\model.pt

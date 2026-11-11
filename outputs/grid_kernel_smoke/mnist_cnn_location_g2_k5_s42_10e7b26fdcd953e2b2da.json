@@ -1,0 +1,28 @@
+{
+  "job": {
+    "protocol": 1,
+    "dataset": "mnist",
+    "grid": 2,
+    "kernel": 5,
+    "crop": 52,
+    "mode": "cnn_location",
+    "seed": 42,
+    "epochs": 1,
+    "batch_size": 2,
+    "train_limit": 4,
+    "val_limit": 2
+  },
+  "status": "complete",
+  "accuracy": 0.0,
+  "history": [
+    {
+      "epoch": 1,
+      "validation_accuracy": 0.0
+    }
+  ],
+  "n_train": 4,
+  "n_validation": 2,
+  "device": "cuda",
+  "torch_version": "2.9.1+cu126",
+  "seconds": 0.005035300040617585
+}
