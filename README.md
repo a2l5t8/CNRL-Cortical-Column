@@ -89,10 +89,6 @@ configuration learns new features rather than resizing a frozen feature bank.
 - `column/convert.py`: explicit migration of archived weights, not training.
 - `baseline/cnn.py`: independent convolution + pooling + MLP benchmark.
 
-Legacy code and artifacts were moved intact to `../claude_retired_2026-11-09/`.
-Its `data` junction points to this directory's shared dataset. Earlier winning
-model backups also remain intact.
-
 Every layer requires a `net` argument; `Column` supplies the same network to all
 four. `train` returns a list of epoch metrics and accepts `validation_data=(x, y)`.
 Initialization is automatic in `train` and `predict`, or explicit with
